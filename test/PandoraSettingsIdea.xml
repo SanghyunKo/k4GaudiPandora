@@ -1,0 +1,29 @@
+<pandora>
+    <!-- GLOBAL SETTINGS -->
+    <IsMonitoringEnabled>true</IsMonitoringEnabled>
+    <ShouldDisplayAlgorithmInfo>true</ShouldDisplayAlgorithmInfo>
+    <ShouldCollapseMCParticlesToPfoTarget>false</ShouldCollapseMCParticlesToPfoTarget>
+
+    <algorithm type = "ExternalClustering">
+        <FlagClustersAsPhotons>false</FlagClustersAsPhotons>
+    </algorithm>
+
+    <algorithm type = "TrackClusterAssociation">
+        <LowEnergyCut>0.5</LowEnergyCut>
+        <MaxTrackClusterDistance>25.</MaxTrackClusterDistance>
+        <MaxSearchLayer>0</MaxSearchLayer>
+        <ParallelDistanceCut>500.</ParallelDistanceCut>
+        <MinTrackClusterCosAngle>0.</MinTrackClusterCosAngle>
+    </algorithm>
+
+    <algorithm type = "CreatePfo">
+        <OutputPfoListName>PfoIdea</OutputPfoListName>
+    </algorithm>
+
+</pandora>
+
+
+
+
+
+
