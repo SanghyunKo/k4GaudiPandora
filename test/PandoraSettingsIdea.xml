@@ -10,9 +10,9 @@
 
     <algorithm type = "TrackClusterAssociation">
         <LowEnergyCut>0.5</LowEnergyCut>
-        <MaxTrackClusterDistance>25.</MaxTrackClusterDistance>
+        <MaxTrackClusterDistance>3.</MaxTrackClusterDistance>
         <MaxSearchLayer>0</MaxSearchLayer>
-        <ParallelDistanceCut>500.</ParallelDistanceCut>
+        <ParallelDistanceCut>50.</ParallelDistanceCut>
         <MinTrackClusterCosAngle>0.</MinTrackClusterCosAngle>
     </algorithm>
 
