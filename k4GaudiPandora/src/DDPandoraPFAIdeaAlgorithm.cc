@@ -8,6 +8,8 @@
 
 #include "LCTrackClusterAssociation/TrackClusterAssociationAlgorithm.h"
 #include "PfoCreationAlgorithmIdea.h"
+#include "DDPandoraPFANewAlgorithm.h"
+#include "DDGeometryCreatorIDEA.h"
 
 namespace lc_content {
 class TrackClusterAssociationAlgorithmFactory : public pandora::AlgorithmFactory {
@@ -35,28 +37,6 @@ DDPandoraPFAIdeaAlgorithm::DDPandoraPFAIdeaAlgorithm(const std::string& name, IS
 //                        }),
 //       m_pPandora() {}
 
-dd4hep::rec::LayeredCalorimeterData* getExtension(unsigned int includeFlag, unsigned int excludeFlag) {
-  dd4hep::rec::LayeredCalorimeterData* theExtension = nullptr;
-
-  dd4hep::Detector& mainDetector = dd4hep::Detector::getInstance();
-  const std::vector<dd4hep::DetElement>& theDetectors =
-      dd4hep::DetectorSelector(mainDetector).detectors(includeFlag, excludeFlag);
-
-  if (theDetectors.size() != 1) {
-    std::stringstream es;
-    es << " getExtension: selection is not unique (or empty)  includeFlag: " << dd4hep::DetType(includeFlag)
-       << " excludeFlag: " << dd4hep::DetType(excludeFlag) << " --- found detectors : ";
-    for (const auto& detector : theDetectors) {
-      es << " " << detector.name() << " (id: " << detector.id() << ")";
-    }
-    throw std::runtime_error(es.str());
-  }
-
-  theExtension = theDetectors.at(0).extension<dd4hep::rec::LayeredCalorimeterData>();
-
-  return theExtension;
-}
-
 StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
   m_geoSvc = serviceLocator()->service("GeoSvc"); // important to initialize m_geoSvc
   if (!m_geoSvc) {
@@ -80,6 +60,7 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
   m_trackCreatorSettings.m_bField = getFieldFromCompact();
   m_trackCreatorSettings.m_endcapInnerZ = drcExtension->extent[2] / dd4hep::mm;
 
+  m_geometryCreator = std::make_unique<DDGeometryCreatorIDEA>(m_geometryCreatorSettings, m_pandora, this);
   m_caloHitCreator = std::make_unique<DualReadoutCaloHitCreator>(m_caloHitCreatorSettings, m_pandora, this);
   m_trackCreator = std::make_unique<DDTrackCreatorIDEA>(m_trackCreatorSettings, m_pandora, this);
   m_pfoCreator = std::make_unique<DDPfoCreatorIdea>(m_pfoCreatorSettings, m_pandora, this);
@@ -96,6 +77,8 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "CreatePfo",
                                                                  new lc_content::PfoCreationAlgorithmIdeaFactory));
+
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, m_geometryCreator->CreateGeometry())
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::ReadSettings(m_pandora, m_pandoraSettingsXmlFile))
