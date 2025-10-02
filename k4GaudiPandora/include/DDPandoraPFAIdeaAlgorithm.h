@@ -4,6 +4,7 @@
 #include "DualReadoutCaloHitCreator.h"
 #include "DDTrackCreatorIDEA.h"
 #include "DDPfoCreatorIdea.h"
+#include "DDGeometryCreator.h"
 
 #include "edm4hep/CalorimeterHitCollection.h"
 #include "edm4hep/ClusterCollection.h"
@@ -28,8 +29,6 @@ namespace {
   class Pandora;
 }
 
-dd4hep::rec::LayeredCalorimeterData* getExtension(unsigned int includeFlag, unsigned int excludeFlag = 0);
-
 class DDPandoraPFAIdeaAlgorithm : public Gaudi::Algorithm {
 public:
   DDPandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc);
@@ -47,10 +46,12 @@ public:
 private:
   SmartIF<IGeoSvc> m_geoSvc;
   pandora::Pandora m_pandora;
+  std::unique_ptr<DDGeometryCreator> m_geometryCreator;
   std::unique_ptr<DualReadoutCaloHitCreator> m_caloHitCreator;
   std::unique_ptr<DDTrackCreatorIDEA> m_trackCreator;
   std::unique_ptr<DDPfoCreatorIdea> m_pfoCreator;
 
+  DDGeometryCreator::Settings m_geometryCreatorSettings;
   DualReadoutCaloHitCreator::Settings m_caloHitCreatorSettings;
   DDTrackCreatorIDEA::Settings m_trackCreatorSettings;
   DDPfoCreatorIdea::Settings m_pfoCreatorSettings;
