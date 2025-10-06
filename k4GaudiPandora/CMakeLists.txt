@@ -42,6 +42,8 @@ set(_plugin_sources ${CMAKE_CURRENT_LIST_DIR}/
           src/PfoCreationAlgorithmIdea.cc
           src/DDPandoraPFAIdeaAlgorithm.cc
           src/DDPfoCreatorIdea.cc
+          src/DDGeometryCreatorIDEA.cc
+          src/BremRecoveryAlgorithm.cc
 )
 
 gaudi_add_module(k4GaudiPandoraPlugins
