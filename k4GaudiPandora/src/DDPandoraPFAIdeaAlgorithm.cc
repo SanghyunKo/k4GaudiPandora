@@ -10,6 +10,7 @@
 #include "PfoCreationAlgorithmIdea.h"
 #include "DDPandoraPFANewAlgorithm.h"
 #include "DDGeometryCreatorIDEA.h"
+#include "BremRecoveryAlgorithm.h"
 
 namespace lc_content {
 class TrackClusterAssociationAlgorithmFactory : public pandora::AlgorithmFactory {
@@ -75,6 +76,10 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
                                                                  new lc_content::TrackClusterAssociationAlgorithmFactory));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
+                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "BremRecovery",
+                                                                 new BremRecoveryAlgorithm::Factory));
+
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "CreatePfo",
                                                                  new lc_content::PfoCreationAlgorithmIdeaFactory));
 
@@ -83,7 +88,7 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::ReadSettings(m_pandora, m_pandoraSettingsXmlFile))
   } catch (pandora::StatusCodeException& statusCodeException) {
-    error() << "Pandora failed to initialize DDExternalClusterCreator" << endmsg;
+    error() << "Pandora failed to initialize DDPandoraPFAIdeaAlgorithm: " << statusCodeException.ToString() << endmsg;
     throw;
   } catch (std::exception& exception) {
     error() << "DDPandoraPFAIdeaAlgorithm failure: " << exception.what() << endmsg;

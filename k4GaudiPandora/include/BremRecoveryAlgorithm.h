@@ -4,6 +4,9 @@
 #include "Pandora/Algorithm.h"
 #include "Helpers/XmlHelper.h"
 
+#include "Objects/Track.h"
+#include "Objects/Cluster.h"
+
 // Split tangent extrapolation utilities
 // so that devs can wrap them in either pandora::Algorithm or GaudiAlg
 // upon a request
@@ -24,17 +27,7 @@ namespace BremRecoveryUtility {
   };
 
   // deltaPhi function to restrict the domain to -pi to pi
-  // (I stole it from cmssw)
-  double deltaPhi(const double p1, const double p2) {
-    double oo2pi = 1./(2.*M_PI);
-
-    if (std::abs(p1-p2) <= M_PI)
-      return p1 - p2;
-
-    double n = std::round((p1-p2)*oo2pi);
-
-    return p1 - p2 - n*2.*M_PI;
-  }
+  double deltaPhi(const double p1, const double p2);
 
   // Extrapolation of a straight line to a cylinder-shaped detector
   // clearly motivated by pandora::Helix
@@ -49,10 +42,21 @@ namespace BremRecoveryUtility {
                         const ThreeVector& refPt, 
                         const ThreeVector& momVec, 
                         ThreeVector& intersectPt);
+
+  // sorting helper for the cluster with multiple matched tracks
+  // FIXME this can be implemented in the lc_content::SortingHelper
+  bool sortByDistance(const pandora::Track* a,
+                      const pandora::Track* b,
+                      const pandora::Cluster* const pCluster);
 }
 
 class BremRecoveryAlgorithm : public pandora::Algorithm {
 public:
+  class Factory : public pandora::AlgorithmFactory {
+  public:
+    pandora::Algorithm* CreateAlgorithm() const;
+  };
+
   BremRecoveryAlgorithm();
 
 private:
@@ -63,5 +67,9 @@ private:
   double m_dEtaMargin;
   double m_dPhiMargin;
 };
+
+inline pandora::Algorithm* BremRecoveryAlgorithm::Factory::CreateAlgorithm() const {
+  return new BremRecoveryAlgorithm();
+}
 
 #endif

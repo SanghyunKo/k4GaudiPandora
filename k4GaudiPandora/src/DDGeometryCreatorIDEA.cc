@@ -29,9 +29,10 @@ pandora::StatusCode DDGeometryCreatorIDEA::CreateGeometry() const {
     m_algorithm.debug() << "Creating geometry for IDEA detector" << endmsg;
 
     for (SubDetectorTypeMap::const_iterator iter = subDetectorTypeMap.begin(), iterEnd = subDetectorTypeMap.end();
-         iter != iterEnd; ++iter)
+         iter != iterEnd; ++iter) {
       PANDORA_RETURN_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                                PandoraApi::Geometry::SubDetector::Create(m_pPandora, iter->second));
+    }
   } catch (std::exception& exception) {
     m_algorithm.error() << "Failure in DDGeometryCreatorIDEA, exception: " << exception.what() << endmsg;
     throw exception;
@@ -44,13 +45,14 @@ pandora::StatusCode DDGeometryCreatorIDEA::CreateGeometry() const {
 
 void DDGeometryCreatorIDEA::SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const {
   PandoraApi::Geometry::SubDetector::Parameters eCalBarrelParameters, eCalEndCapParameters;
-  // hCalBarrelParameters, hCalEndCapParameters, muonBarrelParameters, muonEndCapParameters; // TODO they're not used anywhere at the moment, so ignoring them
+  // hCalBarrelParameters, hCalEndCapParameters, muonBarrelParameters, muonEndCapParameters;
+  // TODO they're not used anywhere at the moment, so ignoring them
 
   this->SetDRCo1Parameters(
       *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
           getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::ELECTROMAGNETIC | dd4hep::DetType::HADRONIC),
                        (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
-      "DualReadoutBarrel", "DualReadoutEndcap", eCalBarrelParameters, eCalBarrelParameters);
+      "DualReadoutBarrel", "DualReadoutEndcap", eCalBarrelParameters, eCalEndCapParameters);
 
   subDetectorTypeMap[pandora::ECAL_BARREL] = eCalBarrelParameters;
   subDetectorTypeMap[pandora::ECAL_ENDCAP] = eCalEndCapParameters;
@@ -69,12 +71,19 @@ void DDGeometryCreatorIDEA::SetDRCo1Parameters(const dd4hep::rec::LayeredCalorim
   paramBarrel.m_innerZCoordinate = 0.;
   paramBarrel.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
   paramBarrel.m_innerSymmetryOrder = 0; // not initialized
-  paramBarrel.m_outerRCoordinate = (inputParameters.extent[0] + inputParameters.extent[3] - inputParameters.extent[2]) / dd4hep::mm; // barrel innerR + tower height, tower height = endcap outer Z - endcap inner Z
+  paramBarrel.m_outerRCoordinate = (inputParameters.extent[0] + inputParameters.extent[3] - inputParameters.extent[2]) / dd4hep::mm;
+  // barrel outerR = barrel innerR + tower height, tower height = endcap outer Z - endcap inner Z
   paramBarrel.m_outerZCoordinate = inputParameters.extent[2] / dd4hep::mm; // use endcap inner Z
   paramBarrel.m_outerPhiCoordinate = 0.; // not initialized
   paramBarrel.m_outerSymmetryOrder = 0; // not initialized
   paramBarrel.m_isMirroredInZ = true;
-  paramBarrel.m_nLayers = inputParameters.layers.size();
+  paramBarrel.m_nLayers = 1; // no longitudinal segmentation
+
+  // just dummy values for the mandatory parameters
+  paramBarrel.m_layerParametersVector.resize(1);
+  paramBarrel.m_layerParametersVector.back().m_closestDistanceToIp = inputParameters.extent[0] / dd4hep::mm;
+  paramBarrel.m_layerParametersVector.back().m_nRadiationLengths = 100.;
+  paramBarrel.m_layerParametersVector.back().m_nInteractionLengths = 8.;
 
   paramEndcap.m_subDetectorName = nameEndcap;
   paramEndcap.m_subDetectorType = pandora::ECAL_ENDCAP;
@@ -87,7 +96,13 @@ void DDGeometryCreatorIDEA::SetDRCo1Parameters(const dd4hep::rec::LayeredCalorim
   paramEndcap.m_outerPhiCoordinate = 0.; // not initialized
   paramEndcap.m_outerSymmetryOrder = 0; // not initialized
   paramEndcap.m_isMirroredInZ = true;
-  paramEndcap.m_nLayers = inputParameters.layers.size();
+  paramEndcap.m_nLayers = 1; // no longitudinal segmentation
+
+  // just dummy values for the mandatory parameters
+  paramEndcap.m_layerParametersVector.resize(1);
+  paramEndcap.m_layerParametersVector.back().m_closestDistanceToIp = inputParameters.extent[2] / dd4hep::mm;
+  paramEndcap.m_layerParametersVector.back().m_nRadiationLengths = 100.;
+  paramEndcap.m_layerParametersVector.back().m_nInteractionLengths = 8.;
 
   return;
 }
