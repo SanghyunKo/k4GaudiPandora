@@ -32,7 +32,8 @@ public:
   /**
    *  @brief  Create geometry
    */
-  pandora::StatusCode CreateGeometry() const;
+  pandora::StatusCode CreateGeometry() const; // override;
+  // FIXME base function is not virtual
 
 private:
   /**

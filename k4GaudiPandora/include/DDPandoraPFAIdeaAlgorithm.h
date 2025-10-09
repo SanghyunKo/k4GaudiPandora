@@ -4,7 +4,7 @@
 #include "DualReadoutCaloHitCreator.h"
 #include "DDTrackCreatorIDEA.h"
 #include "DDPfoCreatorIdea.h"
-#include "DDGeometryCreator.h"
+#include "DDGeometryCreatorIDEA.h"
 
 #include "edm4hep/CalorimeterHitCollection.h"
 #include "edm4hep/ClusterCollection.h"
@@ -46,7 +46,7 @@ public:
 private:
   SmartIF<IGeoSvc> m_geoSvc;
   pandora::Pandora m_pandora;
-  std::unique_ptr<DDGeometryCreator> m_geometryCreator;
+  std::unique_ptr<DDGeometryCreatorIDEA> m_geometryCreator;
   std::unique_ptr<DualReadoutCaloHitCreator> m_caloHitCreator;
   std::unique_ptr<DDTrackCreatorIDEA> m_trackCreator;
   std::unique_ptr<DDPfoCreatorIdea> m_pfoCreator;

@@ -7,6 +7,33 @@
 #include <stdexcept>
 
 namespace BremRecoveryUtility {
+  // deltaPhi function to restrict the domain to -pi to pi
+  // (I stole it from cmssw)
+  double deltaPhi(const double p1, const double p2) {
+    double oo2pi = 1./(2.*M_PI);
+
+    if (std::abs(p1-p2) <= M_PI)
+      return p1 - p2;
+
+    double n = std::round((p1-p2)*oo2pi);
+
+    return p1 - p2 - n*2.*M_PI;
+  }
+
+  // sorting helper for the cluster with multiple matched tracks
+  // FIXME this can be implemented in the lc_content::SortingHelper
+  bool sortByDistance (const pandora::Track* a,
+                       const pandora::Track* b,
+                       const pandora::Cluster* const pCluster) {
+    const auto& trkStateA = a->GetTrackStateAtCalorimeter();
+    const auto& trkStateB = b->GetTrackStateAtCalorimeter();
+    const auto& clusterPos = pCluster->GetCentroid( pCluster->GetInnerPseudoLayer() );
+    const double distA2 = (clusterPos - trkStateA.GetPosition()).GetMagnitudeSquared();
+    const double distB2 = (clusterPos - trkStateB.GetPosition()).GetMagnitudeSquared();
+
+    return distA2 < distB2;
+  }
+
   bool GetPointInZ(const double zPlane,        // z plane (endcap) coordinate
                    const ThreeVector& refPt,   // reference point
                    const ThreeVector& momVec,  // momentum
@@ -130,18 +157,12 @@ pandora::StatusCode BremRecoveryAlgorithm::Run() {
     // can be further optimized e.g. the "mustache supercluster" + "refined cluster" a la CMS
 
     // 0. Take the best-matched track (based on the distance btn cluster & traj. state on calo)
-    auto sortByDistance = [&pCluster] (const pandora::Track* a, const pandora::Track* b) -> bool {
-      const auto& trkStateA = a->GetTrackStateAtCalorimeter();
-      const auto& trkStateB = b->GetTrackStateAtCalorimeter();
-      const auto& clusterPos = pCluster->GetCentroid( pCluster->GetInnerPseudoLayer() );
-      const double distA2 = (clusterPos - trkStateA.GetPosition()).GetMagnitudeSquared();
-      const double distB2 = (clusterPos - trkStateB.GetPosition()).GetMagnitudeSquared();
-
-      return distA2 < distB2;
+    auto sortByTrackClusterDistance = [&pCluster] (const pandora::Track* a, const pandora::Track* b) -> bool {
+      return BremRecoveryUtility::sortByDistance(a,b,pCluster);
     };
 
     pandora::TrackList matchedTrackList = pCluster->GetAssociatedTrackList(); // pandora::TrackList = std::list<pandora::Track*>
-    matchedTrackList.sort(sortByDistance);
+    matchedTrackList.sort(sortByTrackClusterDistance);
     const auto* closestTrack = *matchedTrackList.begin();
 
     // 1. Extrapolate the tangent to the calo surface

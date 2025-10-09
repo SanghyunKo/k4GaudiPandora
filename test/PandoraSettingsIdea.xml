@@ -16,6 +16,11 @@
         <MinTrackClusterCosAngle>0.</MinTrackClusterCosAngle>
     </algorithm>
 
+    <algorithm type = "BremRecovery">
+        <dEtaMargin>0.005</dEtaMargin>
+        <dPhiMargin>0.05</dPhiMargin>
+    </algorithm>
+
     <algorithm type = "CreatePfo">
         <OutputPfoListName>PfoIdea</OutputPfoListName>
     </algorithm>
