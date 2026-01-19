@@ -7,6 +7,7 @@
 #include "DD4hep/DetectorSelector.h"
 
 #include "LCTrackClusterAssociation/TrackClusterAssociationAlgorithm.h"
+#include "LCMonitoring/VisualMonitoringAlgorithm.h"
 #include "PfoCreationAlgorithmIdea.h"
 #include "DDPandoraPFANewAlgorithm.h"
 #include "DDGeometryCreatorIDEA.h"
@@ -16,6 +17,11 @@ namespace lc_content {
 class TrackClusterAssociationAlgorithmFactory : public pandora::AlgorithmFactory {
 public:
     pandora::Algorithm *CreateAlgorithm() const { return new TrackClusterAssociationAlgorithm(); };
+};
+
+class VisualMonitoringAlgorithmFactory : public pandora::AlgorithmFactory {
+public:
+    pandora::Algorithm *CreateAlgorithm() const { return new VisualMonitoringAlgorithm(); };
 };
 
 class PfoCreationAlgorithmIdeaFactory : public pandora::AlgorithmFactory {
@@ -83,6 +89,10 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "CreatePfo",
                                                                  new lc_content::PfoCreationAlgorithmIdeaFactory));
 
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
+                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "VisualMonitoring",
+                                                                 new lc_content::VisualMonitoringAlgorithmFactory));
+
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, m_geometryCreator->CreateGeometry())
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
@@ -116,6 +126,7 @@ StatusCode DDPandoraPFAIdeaAlgorithm::execute(const EventContext&) const {
 
   // output collection
   edm4hep::ReconstructedParticleCollection* pfoColl = m_pfoColl.createAndPut();
+  edm4hep::ClusterCollection* outClusterColl = m_outClusterColl.createAndPut();
 
   try {
     // track
@@ -141,7 +152,7 @@ StatusCode DDPandoraPFAIdeaAlgorithm::execute(const EventContext&) const {
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::ProcessEvent(m_pandora));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            m_pfoCreator->CreatePFOs(*pfoColl))
+                            m_pfoCreator->CreatePFOs(*clusterColl,*outClusterColl, *pfoColl))
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::Reset(m_pandora))
   } catch (std::exception& e) {

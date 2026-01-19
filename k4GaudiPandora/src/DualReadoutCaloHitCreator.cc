@@ -26,7 +26,7 @@ pandora::StatusCode DualReadoutCaloHitCreator::createCaloHits(const std::vector<
       // see PandoraSDK/include/Pandora/ObjectCreation.h for the full list
       auto pos = hit.getPosition();
       caloHitParameters.m_positionVector = pandora::InputCartesianVector(pandora::CartesianVector(pos.x, pos.y, pos.z));
-      caloHitParameters.m_cellGeometry = pandora::InputCellGeometry(pandora::CellGeometry::POINTING);
+      caloHitParameters.m_cellGeometry = pandora::InputCellGeometry(pandora::CellGeometry::RECTANGULAR);
       caloHitParameters.m_cellSize0 = 1.5; // mm (edm4hep unit) FIXME make configurable
       caloHitParameters.m_cellSize1 = 1.5; // mm (edm4hep unit) FIXME make configurable
       caloHitParameters.m_time = pandora::InputFloat(hit.getTime());
@@ -39,7 +39,7 @@ pandora::StatusCode DualReadoutCaloHitCreator::createCaloHits(const std::vector<
       caloHitParameters.m_layer = 0; // always zero for DRC
       caloHitParameters.m_expectedDirection = caloHitParameters.m_positionVector.Get().GetUnitVector();
       caloHitParameters.m_cellNormalVector = caloHitParameters.m_positionVector.Get().GetUnitVector();
-      caloHitParameters.m_cellThickness = 2000.; // mm (edm4hep unit) FIXME make configurable
+      caloHitParameters.m_cellThickness = 1.5; // mm (edm4hep unit) FIXME make configurable
       caloHitParameters.m_nCellRadiationLengths = 100.; // FIXME make configurable
       caloHitParameters.m_nCellInteractionLengths = 8; // FIXME make configurable
       caloHitParameters.m_mipEquivalentEnergy = 0.1; // GeV (edm4hep unit) FIXME make configurable

@@ -68,6 +68,8 @@ private:
                                                "input cluster collection name"};
   Gaudi::Property<std::string> m_pfoCollName{this, "outputPfoCollection", "PandoraPfaIdea",
                                                "output PFO collection name"};
+  Gaudi::Property<std::string> m_outClusterCollName{this, "outputClusterCollection", "PandoraClusters",
+                                                    "output cluster collection name"};
 
   // Input collections
   mutable k4FWCore::DataHandle<edm4hep::CalorimeterHitCollection> m_caloHitColl{m_caloHitCollName, Gaudi::DataHandle::Reader,
@@ -80,6 +82,7 @@ private:
   // Output collections
   mutable k4FWCore::DataHandle<edm4hep::ReconstructedParticleCollection> m_pfoColl{m_pfoCollName, Gaudi::DataHandle::Writer,
                                                                                    this};
+  mutable k4FWCore::DataHandle<edm4hep::ClusterCollection> m_outClusterColl{m_outClusterCollName, Gaudi::DataHandle::Writer, this};
 
   inline static std::vector<edm4hep::Cluster> m_clusterMember; // FIXME temporary workaround to access clusters in pandora algorithm
 };
