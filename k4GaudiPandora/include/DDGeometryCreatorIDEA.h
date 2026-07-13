@@ -20,6 +20,15 @@
  */
 class DDGeometryCreatorIDEA : public DDGeometryCreator {
 public:
+  // inherited settings specific to IDEA geometry creator
+  class Settings : public DDGeometryCreator::Settings {
+  public:
+    Settings()=default;
+    ~Settings()=default;
+
+    bool m_isOption2;
+  };
+
   /**
    *  @brief  Constructor
    *
@@ -43,12 +52,12 @@ private:
    */
   void SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const;
 
-  // IDEA o1 DRC parameters
-  void SetDRCo1Parameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
-                          const std::string& nameBarrel,
-                          const std::string& nameEndcap,
-                          PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
-                          PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const;
+  // IDEA ECAL parameters (fiber DRC for o1, crystal DRC for o2)
+  void SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+                         PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
+                         PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const;
+
+  const Settings m_settings;
 };
 
 #endif

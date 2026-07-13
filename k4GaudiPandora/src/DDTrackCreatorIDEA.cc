@@ -59,35 +59,38 @@ void DDTrackCreatorIDEA::GetTrackStates(const edm4hep::Track& pTrack,
 }
 
 pandora::StatusCode DDTrackCreatorIDEA::CreateTracks(const std::vector<edm4hep::Track>& tracks) const {
+  // Track selection (calo-reaching, no ghost helices) is done upstream in
+  // TracksFromGenParticles; create a Pandora track for every input track.
   for (const auto& pTrack : tracks) {
-    // Note: copy-paste of the DDTrackCreatorCLIC
-
-    // Take the first track state for the parameters
-    const auto& trackState = pTrack.getTrackStates()[0];
-
-    // Proceed to create the pandora track
-    object_creation::TrackParameters trackParameters;
-    trackParameters.m_d0 = trackState.D0;
-    trackParameters.m_z0 = trackState.Z0;
-    trackParameters.m_pParentAddress = &pTrack;
-
-    const float signedCurvature = trackState.omega;
-    trackParameters.m_particleId = 0; // no PID at this stage
-    trackParameters.m_mass = 0.; // no mass at this stage
-
-    if (signedCurvature != 0.f)
-      trackParameters.m_charge = static_cast<int>(signedCurvature / std::fabs(signedCurvature));
-
+    // Wrap the whole per-track body: a single track with a bad (e.g. non-finite) parameter is
+    // logged and skipped rather than aborting the event.
     try {
+      // Note: copy-paste of the DDTrackCreatorCLIC
+      // Take the first track state for the parameters
+      const auto& trackState = pTrack.getTrackStates()[0];
+
+      // Proceed to create the pandora track
+      object_creation::TrackParameters trackParameters;
+      trackParameters.m_d0 = trackState.D0;
+      trackParameters.m_z0 = trackState.Z0;
+      trackParameters.m_pParentAddress = &pTrack;
+
+      const float signedCurvature = trackState.omega;
+      trackParameters.m_particleId = 0; // no PID at this stage
+      trackParameters.m_mass = 0.; // no mass at this stage
+
+      if (signedCurvature != 0.f)
+        trackParameters.m_charge = static_cast<int>(signedCurvature / std::fabs(signedCurvature));
+
       GetTrackStates(pTrack, trackParameters);
-      // FIXME Assume all track reach the calo for now
-      trackParameters.m_reachesCalorimeter = true;
+      // FIXME double-check TracksFromGenParticle's track state at calo
+      float r_calo = trackParameters.m_trackStateAtCalorimeter.Get().GetPosition().GetMagnitudeSquared();
+      trackParameters.m_reachesCalorimeter = r_calo > std::numeric_limits<float>::epsilon() ? true : false;
       // FIXME isn't this already done in GetTrackStates?
       // GetTrackStatesAtCalo(pTrack, trackParameters);
 
-      // FIXME ignore low-pt or MIP particles for now
       trackParameters.m_canFormPfo = true;
-      trackParameters.m_canFormClusterlessPfo = false;
+      trackParameters.m_canFormClusterlessPfo = true;
 
       PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                               PandoraApi::Track::Create(m_pandora, trackParameters))

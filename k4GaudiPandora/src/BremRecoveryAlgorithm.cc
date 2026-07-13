@@ -220,7 +220,7 @@ pandora::StatusCode BremRecoveryAlgorithm::Run() {
     const double minDPhi = bremBandPhi > 0. ? -m_dPhiMargin : bremBandPhi - m_dPhiMargin;
 
     // loop over clusters again
-    for (unsigned long long iclus = 0; iclus < tempClusterVec.size(); iclus++) {
+    for (unsigned iclus = 0; iclus < tempClusterVec.size(); iclus++) {
       const auto* pCluster2nd = tempClusterVec.at(iclus);
 
       if (pCluster2nd==nullptr) // already merged

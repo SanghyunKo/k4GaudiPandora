@@ -16,8 +16,8 @@
 dd4hep::rec::LayeredCalorimeterData* getExtension(unsigned int includeFlag, unsigned int excludeFlag = 0);
 
 DDGeometryCreatorIDEA::DDGeometryCreatorIDEA(const Settings& settings, pandora::Pandora& pPandora,
-                                                   Gaudi::Algorithm* algorithm)
-    : DDGeometryCreator(settings, pPandora, algorithm) {}
+                                             Gaudi::Algorithm* algorithm)
+    : DDGeometryCreator(settings, pPandora, algorithm), m_settings(settings) {}
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -48,11 +48,11 @@ void DDGeometryCreatorIDEA::SetMandatorySubDetectorParameters(SubDetectorTypeMap
   // hCalBarrelParameters, hCalEndCapParameters, muonBarrelParameters, muonEndCapParameters;
   // TODO they're not used anywhere at the moment, so ignoring them
 
-  this->SetDRCo1Parameters(
+  this->SetEcalParameters(
       *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
-          getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::ELECTROMAGNETIC | dd4hep::DetType::HADRONIC),
+          getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL | dd4hep::DetType::ENDCAP),
                        (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
-      "DualReadoutBarrel", "DualReadoutEndcap", eCalBarrelParameters, eCalEndCapParameters);
+      eCalBarrelParameters, eCalEndCapParameters);
 
   subDetectorTypeMap[pandora::ECAL_BARREL] = eCalBarrelParameters;
   subDetectorTypeMap[pandora::ECAL_ENDCAP] = eCalEndCapParameters;
@@ -60,12 +60,13 @@ void DDGeometryCreatorIDEA::SetMandatorySubDetectorParameters(SubDetectorTypeMap
   // PandoraApi::Geometry::SubDetector::Parameters coilParameters; // TODO retrive coil parameters
 }
 
-void DDGeometryCreatorIDEA::SetDRCo1Parameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
-                                               const std::string& nameBarrel,
-                                               const std::string& nameEndcap,
-                                               PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
-                                               PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
-  paramBarrel.m_subDetectorName = nameBarrel;
+void DDGeometryCreatorIDEA::SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+                                              PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
+                                              PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
+  unsigned layerVecSize = inputParameters.layers.size();  // zero for option 1
+  unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
+
+  paramBarrel.m_subDetectorName = "ECalBarrel";
   paramBarrel.m_subDetectorType = pandora::ECAL_BARREL;
   paramBarrel.m_innerRCoordinate = inputParameters.extent[0] / dd4hep::mm;
   paramBarrel.m_innerZCoordinate = 0.;
@@ -77,15 +78,22 @@ void DDGeometryCreatorIDEA::SetDRCo1Parameters(const dd4hep::rec::LayeredCalorim
   paramBarrel.m_outerPhiCoordinate = 0.; // not initialized
   paramBarrel.m_outerSymmetryOrder = 0; // not initialized
   paramBarrel.m_isMirroredInZ = true;
-  paramBarrel.m_nLayers = 1; // no longitudinal segmentation
+  paramBarrel.m_nLayers = nlayers; // no longitudinal segmentation
 
   // just dummy values for the mandatory parameters
-  paramBarrel.m_layerParametersVector.resize(1);
-  paramBarrel.m_layerParametersVector.back().m_closestDistanceToIp = inputParameters.extent[0] / dd4hep::mm;
-  paramBarrel.m_layerParametersVector.back().m_nRadiationLengths = 100.;
-  paramBarrel.m_layerParametersVector.back().m_nInteractionLengths = 8.;
+  paramBarrel.m_layerParametersVector.resize(nlayers);
+  float distanceBarrel = inputParameters.extent[0];
 
-  paramEndcap.m_subDetectorName = nameEndcap;
+  for (unsigned iLayer = 0; iLayer < nlayers; ++iLayer) {
+    paramBarrel.m_layerParametersVector.at(iLayer).m_closestDistanceToIp = distanceBarrel / dd4hep::mm;
+    paramBarrel.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;   // not used
+    paramBarrel.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.; // not used
+
+    if (layerVecSize > 0)
+      distanceBarrel += inputParameters.layers.at(iLayer).sensitive_thickness;
+  }
+
+  paramEndcap.m_subDetectorName = "ECalEndcap";
   paramEndcap.m_subDetectorType = pandora::ECAL_ENDCAP;
   paramEndcap.m_innerRCoordinate = inputParameters.extent[4] / dd4hep::mm;
   paramEndcap.m_innerZCoordinate = inputParameters.extent[2] / dd4hep::mm;
@@ -96,13 +104,20 @@ void DDGeometryCreatorIDEA::SetDRCo1Parameters(const dd4hep::rec::LayeredCalorim
   paramEndcap.m_outerPhiCoordinate = 0.; // not initialized
   paramEndcap.m_outerSymmetryOrder = 0; // not initialized
   paramEndcap.m_isMirroredInZ = true;
-  paramEndcap.m_nLayers = 1; // no longitudinal segmentation
+  paramEndcap.m_nLayers = nlayers; // no longitudinal segmentation
 
   // just dummy values for the mandatory parameters
-  paramEndcap.m_layerParametersVector.resize(1);
-  paramEndcap.m_layerParametersVector.back().m_closestDistanceToIp = inputParameters.extent[2] / dd4hep::mm;
-  paramEndcap.m_layerParametersVector.back().m_nRadiationLengths = 100.;
-  paramEndcap.m_layerParametersVector.back().m_nInteractionLengths = 8.;
+  paramEndcap.m_layerParametersVector.resize(nlayers);
+  float distanceEndcap = inputParameters.extent[2];
+
+  for (unsigned iLayer = 0; iLayer < nlayers; ++iLayer) {
+    paramEndcap.m_layerParametersVector.at(iLayer).m_closestDistanceToIp = distanceEndcap / dd4hep::mm;
+    paramEndcap.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;   // not used
+    paramEndcap.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.; // not used
+
+    if (layerVecSize > 0)
+      distanceEndcap += inputParameters.layers.at(iLayer).sensitive_thickness;
+  }
 
   return;
 }
