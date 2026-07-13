@@ -4,9 +4,6 @@
 // Pandora
 #include "Api/PandoraApi.h"
 
-// DD4hep
-// #include "DD4hep/Detector.h"
-
 // EDM4hep
 #include "edm4hep/CalorimeterHitCollection.h"
 
@@ -27,28 +24,42 @@ public:
     Settings()=default;
     ~Settings()=default;
 
-    // std::vector<std::string> m_collections; // FIXME currently not used at all
+    // shared parameters
+    float m_theta; // barrel-endcap transition theta
+    std::string m_cherenkovFieldName; // name of the cherenkov field in the cellID encoding
+
+    // collection-specific settings
+    class SubDetectorSettings {
+    public:
+      SubDetectorSettings()=default;
+      ~SubDetectorSettings()=default;
+
+      uint64_t m_systemID; // user-given system ID for this subdetector
+      std::string m_layerFieldName; // name of the layer field in the cellID encoding (leave empty if longitudinally unsegmented)
+      std::string m_collectionType; // either "ECAL" or "HCAL"
+      std::string m_encodingString; // user-given cellID encoding string (temporary solution)
+      float m_cellSize; // in mm (only used for PandoraMonitoring)
+      std::vector<float> m_layerThicknesses; // in mm (edm4hep unit)
+    };
+
+    std::vector<SubDetectorSettings> m_subDetectorSettings; // settings for each subdetector
   };
 
   DualReadoutCaloHitCreator(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* algorithm);
   virtual ~DualReadoutCaloHitCreator()=default;
 
-  // create calo hits in Pandora
-  pandora::StatusCode createCaloHits(const std::vector<edm4hep::CalorimeterHit>& inputCaloHits) const;
+  // create calo hits in Pandora from provided hit vectors
+  pandora::StatusCode createCaloHits(const std::vector<std::vector<edm4hep::CalorimeterHit>>& caloHitVectors) const;
 
   // reset calo hit vector
   void Reset();
 
 private:
-  // void getCaloHitProperties(const edm4hep::CalorimeterHit& hit,
-  //                           PandoraApi::CaloHit::Parameters& caloHitParameters) const;
-
   // settings
   const Settings m_settings;
 
   // interfaces
   pandora::Pandora& m_pandora;
-  // dd4hep::VolumeManager m_volumeManager;
   const Gaudi::Algorithm& m_algorithm;
 };
 

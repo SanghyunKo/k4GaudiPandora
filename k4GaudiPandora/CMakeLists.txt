@@ -39,7 +39,6 @@ set(_plugin_sources ${CMAKE_CURRENT_LIST_DIR}/
           src/DDTrackCreatorIDEA.cc
           src/DualReadoutCaloHitCreator.cc
           src/DDExternalClusterCreator.cc
-          src/PfoCreationAlgorithmIdea.cc
           src/DDPandoraPFAIdeaAlgorithm.cc
           src/DDPfoCreatorIdea.cc
           src/DDGeometryCreatorIDEA.cc
