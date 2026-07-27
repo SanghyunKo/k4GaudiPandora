@@ -56,6 +56,10 @@ private:
   void SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
                          PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
                          PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const;
+  void SetHcalBarrelParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+                         PandoraApi::Geometry::SubDetector::Parameters& paramBarrel) const;
+  void SetHcalEndcapParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+                         PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const;
 
   const Settings m_settings;
 };
