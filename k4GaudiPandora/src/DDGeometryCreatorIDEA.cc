@@ -44,7 +44,7 @@ pandora::StatusCode DDGeometryCreatorIDEA::CreateGeometry() const {
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 void DDGeometryCreatorIDEA::SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const {
-  PandoraApi::Geometry::SubDetector::Parameters eCalBarrelParameters, eCalEndCapParameters;
+  PandoraApi::Geometry::SubDetector::Parameters eCalBarrelParameters, eCalEndCapParameters, hCalBarrelParameters, hCalEndCapParameters;
   // hCalBarrelParameters, hCalEndCapParameters, muonBarrelParameters, muonEndCapParameters;
   // TODO they're not used anywhere at the moment, so ignoring them
 
@@ -56,6 +56,23 @@ void DDGeometryCreatorIDEA::SetMandatorySubDetectorParameters(SubDetectorTypeMap
 
   subDetectorTypeMap[pandora::ECAL_BARREL] = eCalBarrelParameters;
   subDetectorTypeMap[pandora::ECAL_ENDCAP] = eCalEndCapParameters;
+  
+
+  this->SetHcalBarrelParameters(
+      *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
+          getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL | dd4hep::DetType::HADRONIC),
+                        (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
+      hCalBarrelParameters);
+
+  this->SetHcalEndcapParameters(
+      *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
+          getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::ENDCAP | dd4hep::DetType::HADRONIC),
+                       (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
+      hCalEndCapParameters);
+
+  subDetectorTypeMap[pandora::HCAL_BARREL] = hCalBarrelParameters;
+  subDetectorTypeMap[pandora::HCAL_ENDCAP] = hCalEndCapParameters;
+
 
   // PandoraApi::Geometry::SubDetector::Parameters coilParameters; // TODO retrive coil parameters
 }
@@ -100,6 +117,79 @@ void DDGeometryCreatorIDEA::SetEcalParameters(const dd4hep::rec::LayeredCalorime
   paramEndcap.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
   paramEndcap.m_innerSymmetryOrder = 0; // not initialized
   paramEndcap.m_outerRCoordinate = inputParameters.extent[5] / dd4hep::mm;
+  paramEndcap.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm;
+  paramEndcap.m_outerPhiCoordinate = 0.; // not initialized
+  paramEndcap.m_outerSymmetryOrder = 0; // not initialized
+  paramEndcap.m_isMirroredInZ = true;
+  paramEndcap.m_nLayers = nlayers; // no longitudinal segmentation
+
+  // just dummy values for the mandatory parameters
+  paramEndcap.m_layerParametersVector.resize(nlayers);
+  float distanceEndcap = inputParameters.extent[2];
+
+  for (unsigned iLayer = 0; iLayer < nlayers; ++iLayer) {
+    paramEndcap.m_layerParametersVector.at(iLayer).m_closestDistanceToIp = distanceEndcap / dd4hep::mm;
+    paramEndcap.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;   // not used
+    paramEndcap.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.; // not used
+
+    if (layerVecSize > 0)
+      distanceEndcap += inputParameters.layers.at(iLayer).sensitive_thickness;
+  }
+
+  return;
+}
+
+void DDGeometryCreatorIDEA::SetHcalBarrelParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+                                              PandoraApi::Geometry::SubDetector::Parameters& paramBarrel) const {
+
+
+  unsigned layerVecSize = 0.; //inputParameters.layers.size();  // zero for option 1
+  unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
+
+  paramBarrel.m_subDetectorName = "HCalBarrel";
+  paramBarrel.m_subDetectorType = pandora::HCAL_BARREL;
+  paramBarrel.m_innerRCoordinate = inputParameters.extent[0] / dd4hep::mm;
+  paramBarrel.m_innerZCoordinate = 0.; //inputParameters.extent[2];
+  paramBarrel.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
+  paramBarrel.m_innerSymmetryOrder = 0; // not initialized
+  paramBarrel.m_outerRCoordinate = inputParameters.extent[1]  / dd4hep::mm;
+  // barrel outerR = barrel innerR + tower height, tower height = endcap outer Z - endcap inner Z
+  paramBarrel.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm; // use endcap inner Z
+  paramBarrel.m_outerPhiCoordinate = 0.; // not initialized
+  paramBarrel.m_outerSymmetryOrder = 0; // not initialized
+  paramBarrel.m_isMirroredInZ = true;
+  paramBarrel.m_nLayers = nlayers; // no longitudinal segmentation
+
+  // just dummy values for the mandatory parameters
+  paramBarrel.m_layerParametersVector.resize(nlayers);
+  float distanceBarrel = inputParameters.extent[0];
+
+  for (unsigned iLayer = 0; iLayer < nlayers; ++iLayer) {
+    paramBarrel.m_layerParametersVector.at(iLayer).m_closestDistanceToIp = distanceBarrel / dd4hep::mm;
+    paramBarrel.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;   // not used
+    paramBarrel.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.; // not used
+
+    if (layerVecSize > 0)
+      distanceBarrel += inputParameters.layers.at(iLayer).sensitive_thickness;
+  }
+
+  return;
+}
+
+void DDGeometryCreatorIDEA::SetHcalEndcapParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+                                              PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
+
+  unsigned layerVecSize = 0; //inputParameters.layers.size();  // zero for option 1
+  unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
+
+
+  paramEndcap.m_subDetectorName = "HCalEndcap";
+  paramEndcap.m_subDetectorType = pandora::HCAL_ENDCAP;
+  paramEndcap.m_innerRCoordinate = inputParameters.extent[0] / dd4hep::mm;
+  paramEndcap.m_innerZCoordinate = inputParameters.extent[2] / dd4hep::mm;
+  paramEndcap.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
+  paramEndcap.m_innerSymmetryOrder = 0; // not initialized
+  paramEndcap.m_outerRCoordinate = inputParameters.extent[1] / dd4hep::mm;
   paramEndcap.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm;
   paramEndcap.m_outerPhiCoordinate = 0.; // not initialized
   paramEndcap.m_outerSymmetryOrder = 0; // not initialized
