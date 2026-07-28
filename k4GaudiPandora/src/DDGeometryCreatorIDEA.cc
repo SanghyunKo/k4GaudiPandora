@@ -143,31 +143,30 @@ void DDGeometryCreatorIDEA::SetHcalBarrelParameters(const dd4hep::rec::LayeredCa
                                               PandoraApi::Geometry::SubDetector::Parameters& paramBarrel) const {
 
 
-  unsigned layerVecSize = 0.; //inputParameters.layers.size();  // zero for option 1
+  unsigned layerVecSize = 0.; 
   unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
 
   paramBarrel.m_subDetectorName = "HCalBarrel";
   paramBarrel.m_subDetectorType = pandora::HCAL_BARREL;
   paramBarrel.m_innerRCoordinate = inputParameters.extent[0] / dd4hep::mm;
-  paramBarrel.m_innerZCoordinate = 0.; //inputParameters.extent[2];
-  paramBarrel.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
-  paramBarrel.m_innerSymmetryOrder = 0; // not initialized
+  paramBarrel.m_innerZCoordinate = 0.;
+  paramBarrel.m_innerPhiCoordinate = 0.;
+  paramBarrel.m_innerSymmetryOrder = 0; 
   paramBarrel.m_outerRCoordinate = inputParameters.extent[1]  / dd4hep::mm;
-  // barrel outerR = barrel innerR + tower height, tower height = endcap outer Z - endcap inner Z
-  paramBarrel.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm; // use endcap inner Z
-  paramBarrel.m_outerPhiCoordinate = 0.; // not initialized
-  paramBarrel.m_outerSymmetryOrder = 0; // not initialized
+  paramBarrel.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm; 
+  paramBarrel.m_outerPhiCoordinate = 0.;
+  paramBarrel.m_outerSymmetryOrder = 0; 
   paramBarrel.m_isMirroredInZ = true;
-  paramBarrel.m_nLayers = nlayers; // no longitudinal segmentation
+  paramBarrel.m_nLayers = nlayers; 
 
-  // just dummy values for the mandatory parameters
+  
   paramBarrel.m_layerParametersVector.resize(nlayers);
   float distanceBarrel = inputParameters.extent[0];
 
   for (unsigned iLayer = 0; iLayer < nlayers; ++iLayer) {
     paramBarrel.m_layerParametersVector.at(iLayer).m_closestDistanceToIp = distanceBarrel / dd4hep::mm;
-    paramBarrel.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;   // not used
-    paramBarrel.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.; // not used
+    paramBarrel.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;
+    paramBarrel.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.;
 
     if (layerVecSize > 0)
       distanceBarrel += inputParameters.layers.at(iLayer).sensitive_thickness;
@@ -179,7 +178,7 @@ void DDGeometryCreatorIDEA::SetHcalBarrelParameters(const dd4hep::rec::LayeredCa
 void DDGeometryCreatorIDEA::SetHcalEndcapParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
                                               PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
 
-  unsigned layerVecSize = 0; //inputParameters.layers.size();  // zero for option 1
+  unsigned layerVecSize = 0;
   unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
 
 
@@ -187,23 +186,22 @@ void DDGeometryCreatorIDEA::SetHcalEndcapParameters(const dd4hep::rec::LayeredCa
   paramEndcap.m_subDetectorType = pandora::HCAL_ENDCAP;
   paramEndcap.m_innerRCoordinate = inputParameters.extent[0] / dd4hep::mm;
   paramEndcap.m_innerZCoordinate = inputParameters.extent[2] / dd4hep::mm;
-  paramEndcap.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
-  paramEndcap.m_innerSymmetryOrder = 0; // not initialized
+  paramEndcap.m_innerPhiCoordinate = 0.;
+  paramEndcap.m_innerSymmetryOrder = 0;
   paramEndcap.m_outerRCoordinate = inputParameters.extent[1] / dd4hep::mm;
   paramEndcap.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm;
-  paramEndcap.m_outerPhiCoordinate = 0.; // not initialized
-  paramEndcap.m_outerSymmetryOrder = 0; // not initialized
+  paramEndcap.m_outerPhiCoordinate = 0.;
+  paramEndcap.m_outerSymmetryOrder = 0;
   paramEndcap.m_isMirroredInZ = true;
-  paramEndcap.m_nLayers = nlayers; // no longitudinal segmentation
+  paramEndcap.m_nLayers = nlayers; 
 
-  // just dummy values for the mandatory parameters
   paramEndcap.m_layerParametersVector.resize(nlayers);
   float distanceEndcap = inputParameters.extent[2];
 
   for (unsigned iLayer = 0; iLayer < nlayers; ++iLayer) {
     paramEndcap.m_layerParametersVector.at(iLayer).m_closestDistanceToIp = distanceEndcap / dd4hep::mm;
-    paramEndcap.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;   // not used
-    paramEndcap.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.; // not used
+    paramEndcap.m_layerParametersVector.at(iLayer).m_nRadiationLengths = 0.;
+    paramEndcap.m_layerParametersVector.at(iLayer).m_nInteractionLengths = 0.;
 
     if (layerVecSize > 0)
       distanceEndcap += inputParameters.layers.at(iLayer).sensitive_thickness;
