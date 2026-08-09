@@ -1,34 +1,92 @@
 <pandora>
     <!-- GLOBAL SETTINGS -->
-    <IsMonitoringEnabled>true</IsMonitoringEnabled>
+    <IsMonitoringEnabled>false</IsMonitoringEnabled>
     <ShouldDisplayAlgorithmInfo>true</ShouldDisplayAlgorithmInfo>
     <ShouldCollapseMCParticlesToPfoTarget>false</ShouldCollapseMCParticlesToPfoTarget>
 
-    <algorithm type = "ExternalClustering">
+    <!-- PLUGIN REGISTRATION -->
+    <HadronicEnergyCorrectionPlugins>DualReadoutCorrection</HadronicEnergyCorrectionPlugins>
+
+    <!-- PLUGIN SETTINGS -->
+    <DualReadoutCorrection>
+        <ChiEcal>0.41</ChiEcal>
+        <ChiHcal>0.31</ChiHcal>
+    </DualReadoutCorrection>
+
+    <algorithm type = "DDExternalClustering">
         <FlagClustersAsPhotons>false</FlagClustersAsPhotons>
+        <UseClusterPID>false</UseClusterPID>
     </algorithm>
 
     <algorithm type = "TrackClusterAssociation">
-        <LowEnergyCut>0.5</LowEnergyCut>
-        <MaxTrackClusterDistance>3.</MaxTrackClusterDistance>
+        <LowEnergyCut>1</LowEnergyCut> <!--not used for EM clusters anyway-->
+        <MaxTrackClusterDistance>10.</MaxTrackClusterDistance>
         <MaxSearchLayer>0</MaxSearchLayer>
-        <ParallelDistanceCut>50.</ParallelDistanceCut>
+        <ParallelDistanceCut>250.</ParallelDistanceCut>
         <MinTrackClusterCosAngle>0.</MinTrackClusterCosAngle>
     </algorithm>
 
-    <algorithm type = "BremRecovery">
-        <dEtaMargin>0.005</dEtaMargin>
-        <dPhiMargin>0.05</dPhiMargin>
+    <algorithm type = "ClusterNeutralPid">
+        <ModelPath>photonId_ParT_multi.onnx</ModelPath>
+    </algorithm>
+
+    <algorithm type = "IsolatedHitPreparation">
+        <ExcludeHcalHits>true</ExcludeHcalHits>
+        <ScintEnergyThreshold>0.000763</ScintEnergyThreshold>
+        <CherEnergyThreshold>0.01535</CherEnergyThreshold>
+    </algorithm>
+
+    <algorithm type = "IsolatedHitMerging">
+        <ShouldUseCurrentClusterList>true</ShouldUseCurrentClusterList>
+        <MinHitsInCluster>0</MinHitsInCluster>
+        <MaxRecombinationDistance>0.4</MaxRecombinationDistance>
+        <MinCosOpeningAngle>0</MinCosOpeningAngle>
+        <UseCorrectedHadronicEnergy>true</UseCorrectedHadronicEnergy>
+        <UseAngularDistance>true</UseAngularDistance>
+        <IgnorePhotons>true</IgnorePhotons>
+        <IgnoreCharged>false</IgnoreCharged>
+    </algorithm>
+
+    <algorithm type = "EcalSeededClustering">
+        <OutputClusterListName>EcalSeededClusters</OutputClusterListName>
+        <UseDualReadout>true</UseDualReadout>
+        <MomentumThreshold>1.</MomentumThreshold>
+        <HardThreshold>0.0</HardThreshold>
+        <GrowThreshold>0.0</GrowThreshold>
+        <W0>4.6</W0>
+        <AdjacencyR>25.</AdjacencyR>
+    </algorithm>
+
+    <algorithm type = "ForwardPhotonId">
+    </algorithm>
+
+    <algorithm type = "IsolatedHitPreparation">
+        <ExcludeEcalHits>true</ExcludeEcalHits>
+        <ScintEnergyThreshold>0.00727</ScintEnergyThreshold>
+        <CherEnergyThreshold>0.02198</CherEnergyThreshold>
+    </algorithm>
+
+    <algorithm type = "IsolatedHitMerging">
+        <ShouldUseCurrentClusterList>true</ShouldUseCurrentClusterList>
+        <MinHitsInCluster>0</MinHitsInCluster>
+        <MaxRecombinationDistance>0.4</MaxRecombinationDistance>
+        <MinCosOpeningAngle>0</MinCosOpeningAngle>
+        <UseCorrectedHadronicEnergy>true</UseCorrectedHadronicEnergy>
+        <UseAngularDistance>true</UseAngularDistance>
+        <IgnorePhotons>true</IgnorePhotons>
+        <IgnoreCharged>false</IgnoreCharged>
+    </algorithm>
+
+    <algorithm type = "SatelliteAssignmentOnnx">
+        <ModelPath>group_transformer.onnx</ModelPath>
+        <AffinityThreshold>0.34</AffinityThreshold>
+        <GroupNeutral>true</GroupNeutral>
+        <NeutralAffinityThreshold>0.72</NeutralAffinityThreshold>
     </algorithm>
 
     <algorithm type = "CreatePfo">
         <OutputPfoListName>PfoIdea</OutputPfoListName>
+        <PtCut>0.6</PtCut>
+        <NeutralHadEnergyScale>1.0</NeutralHadEnergyScale>
     </algorithm>
-
 </pandora>
-
-
-
-
-
-

@@ -1,12 +1,12 @@
-#include "DDTrackCreatorIDEA.h"
+#include "DDTrackCreatorIdea.h"
 
 #include "Pandora/PandoraEnumeratedTypes.h"
 #include "Pandora/PandoraInputTypes.h"
 
-DDTrackCreatorIDEA::DDTrackCreatorIDEA(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* algorithm)
+DDTrackCreatorIdea::DDTrackCreatorIdea(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* algorithm)
     : m_settings(settings), m_pandora(pandora), m_algorithm(*algorithm) {}
 
-void DDTrackCreatorIDEA::CopyTrackState(const edm4hep::TrackState& pTrackState,
+void DDTrackCreatorIdea::CopyTrackState(const edm4hep::TrackState& pTrackState,
                                         pandora::InputTrackState& inputTrackState) const {
   // copy-paste of DDTrackCreatorBase
   const double pt(m_settings.m_bField * 2.99792e-4 / std::fabs(pTrackState.omega));
@@ -22,7 +22,7 @@ void DDTrackCreatorIDEA::CopyTrackState(const edm4hep::TrackState& pTrackState,
   inputTrackState = pandora::TrackState(xs, ys, zs, px, py, pz);
 }
 
-void DDTrackCreatorIDEA::GetTrackStates(const edm4hep::Track& pTrack,
+void DDTrackCreatorIdea::GetTrackStates(const edm4hep::Track& pTrack,
                                         PandoraApi::Track::Parameters& trackParameters) const {
   // copy-paste of DDTrackCreatorBase
   // local lambda function
@@ -58,7 +58,7 @@ void DDTrackCreatorIDEA::GetTrackStates(const edm4hep::Track& pTrack,
   trackParameters.m_timeAtCalorimeter = -1;
 }
 
-pandora::StatusCode DDTrackCreatorIDEA::CreateTracks(const std::vector<edm4hep::Track>& tracks) const {
+pandora::StatusCode DDTrackCreatorIdea::CreateTracks(const std::vector<edm4hep::Track>& tracks) const {
   // Track selection (calo-reaching, no ghost helices) is done upstream in
   // TracksFromGenParticles; create a Pandora track for every input track.
   for (const auto& pTrack : tracks) {
@@ -103,7 +103,7 @@ pandora::StatusCode DDTrackCreatorIDEA::CreateTracks(const std::vector<edm4hep::
   return pandora::STATUS_CODE_SUCCESS;
 }
 
-// void DDTrackCreatorIDEA::GetTrackStatesAtCalo(const edm4hep::Track& track,
+// void DDTrackCreatorIdea::GetTrackStatesAtCalo(const edm4hep::Track& track,
 //                                               object_creation::TrackParameters& trackParameters) const {
 //   if (!trackParameters.m_reachesCalorimeter.Get()) {
 //     m_algorithm.debug() << "Track does not reach the ECal" << endmsg;

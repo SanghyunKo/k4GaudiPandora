@@ -1,13 +1,13 @@
 /**
- *  @file   k4GaudiPandora/include/DDGeometryCreatorIDEA.h
+ *  @file   k4GaudiPandora/include/DDGeometryCreatorIdea.h
  *
  *  @brief  Header file for the geometry creator class.
  *
  *  $Log: $
  */
 
-#ifndef DDGEOMETRYIDEA_CREATOR_H
-#define DDGEOMETRYIDEA_CREATOR_H
+#ifndef DDGeometryCreatorIdea_h
+#define DDGeometryCreatorIdea_h
 
 #include "Api/PandoraApi.h"
 
@@ -18,7 +18,7 @@
 /**
  *  @brief  DDGeometryCreator class
  */
-class DDGeometryCreatorIDEA : public DDGeometryCreator {
+class DDGeometryCreatorIdea : public DDGeometryCreator {
 public:
   // inherited settings specific to IDEA geometry creator
   class Settings : public DDGeometryCreator::Settings {
@@ -35,7 +35,7 @@ public:
    *  @param  settings the creator settings
    *  @param  pPandora address of the relevant pandora instance
    */
-  DDGeometryCreatorIDEA(const Settings& settings, pandora::Pandora& pPandora,
+  DDGeometryCreatorIdea(const Settings& settings, pandora::Pandora& pPandora,
                         Gaudi::Algorithm* algorithm);
 
   /**

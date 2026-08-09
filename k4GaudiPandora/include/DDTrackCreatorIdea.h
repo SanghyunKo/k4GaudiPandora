@@ -1,5 +1,5 @@
-#ifndef DDTrackCreatorIDEA_h
-#define DDTrackCreatorIDEA_h 1
+#ifndef DDTrackCreatorIdea_h
+#define DDTrackCreatorIdea_h 1
 
 #include "Api/PandoraApi.h"
 #include "Pandora/ObjectCreation.h"
@@ -10,7 +10,7 @@
 // Gaudi
 #include "GaudiKernel/Algorithm.h"
 
-class DDTrackCreatorIDEA {
+class DDTrackCreatorIdea {
 public:
   class Settings {
   public:
@@ -21,8 +21,8 @@ public:
     float m_endcapInnerZ;
   };
 
-  DDTrackCreatorIDEA(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* alg);
-  ~DDTrackCreatorIDEA()=default;
+  DDTrackCreatorIdea(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* alg);
+  ~DDTrackCreatorIdea()=default;
 
   pandora::StatusCode CreateTracks(const std::vector<edm4hep::Track>& tracks) const;
   // void GetTrackStatesAtCalo(const edm4hep::Track& track, object_creation::TrackParameters& params) const;

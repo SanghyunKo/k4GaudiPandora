@@ -36,13 +36,18 @@ set(_plugin_sources ${CMAKE_CURRENT_LIST_DIR}/
                     src/DDGeometryCreatorALLEGRO.cc
                     src/DDTrackCreatorALLEGRO.cc
                     src/DDCaloHitCreatorALLEGRO.cc
-          src/DDTrackCreatorIDEA.cc
-          src/DualReadoutCaloHitCreator.cc
-          src/DDPandoraPFAIdeaAlgorithm.cc
-          src/DDPfoCreatorIdea.cc
-          src/DDGeometryCreatorIDEA.cc
-          src/BremRecoveryAlgorithm.cc
+                    src/DDTrackCreatorIdea.cc
+                    src/DualReadoutCaloHitCreator.cc
+                    src/DDPfoCreatorIdea.cc
+                    src/DDGeometryCreatorIdea.cc
 )
+
+# DDPandoraPFAIdeaAlgorithm registers the ONNX algorithms (ClusterNeutralPid,
+# SatelliteAssignmentOnnx) provided by LCContentML, so it is built only when ML is enabled.
+option(K4GP_BUILD_ML "Build the ONNX/ML-dependent IDEA reconstruction (needs LCContentML)" OFF)
+if(K4GP_BUILD_ML)
+    list(APPEND _plugin_sources src/DDPandoraPFAIdeaAlgorithm.cc)
+endif()
 
 gaudi_add_module(k4GaudiPandoraPlugins
                  SOURCES ${_plugin_sources}
@@ -57,6 +62,7 @@ gaudi_add_module(k4GaudiPandoraPlugins
                       GSL::gslcblas # This seems to be necessary on Ubuntu 24.04 when linking with mold
                       ${PandoraSDK_LIBRARIES}
                       ${LCContent_LIBRARIES}
+                      $<$<BOOL:${K4GP_BUILD_ML}>:LCContent::LCContentML>
                     )
 if(K4GAUDIPANDORA_USE_DDKALTEST)
   target_compile_definitions(k4GaudiPandoraPlugins PRIVATE K4GAUDIPANDORA_USE_DDKALTEST)

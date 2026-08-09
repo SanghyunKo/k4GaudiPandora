@@ -10,17 +10,17 @@
 #include "LCTrackClusterAssociation/TrackClusterAssociationAlgorithm.h"
 
 #include "LCPlugins/DualReadoutCorrection.h"
-#include "LCParticleId/ClusterNeutralPidAlgorithm.h"
+#include "MLInference/ClusterNeutralPidAlgorithm.h"
 #include "LCParticleId/ForwardPhotonIdAlgorithm.h"
 #include "LCClustering/EcalSeededClusteringAlgorithm.h"
-#include "LCFragmentRemoval/SatelliteAssignmentOnnxAlgorithm.h"
+#include "MLInference/SatelliteAssignmentOnnxAlgorithm.h"
 #include "LCUtility/IsolatedHitPreparationAlgorithm.h"
 #include "LCTopologicalAssociation/IsolatedHitMergingAlgorithm.h"
 #include "LCPfoConstruction/IdeaPfoCreationAlgorithm.h"
 
 #include "DDPandoraPFANewAlgorithm.h"
-#include "DDGeometryCreatorIDEA.h"
-#include "BremRecoveryAlgorithm.h"
+#include "DDBFieldPlugin.h"
+#include "DDGeometryCreatorIdea.h"
 
 namespace lc_content {
 class TrackClusterAssociationAlgorithmFactory : public pandora::AlgorithmFactory {
@@ -61,15 +61,21 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
 
   finaliseSteeringParameters();
 
-  m_geometryCreator = std::make_unique<DDGeometryCreatorIDEA>(m_geometryCreatorSettings, m_pandora, this);
+  m_geometryCreator = std::make_unique<DDGeometryCreatorIdea>(m_geometryCreatorSettings, m_pandora, this);
   m_caloHitCreator = std::make_unique<DualReadoutCaloHitCreator>(m_caloHitCreatorSettings, m_pandora, this);
-  m_trackCreator = std::make_unique<DDTrackCreatorIDEA>(m_trackCreatorSettings, m_pandora, this);
+  m_trackCreator = std::make_unique<DDTrackCreatorIdea>(m_trackCreatorSettings, m_pandora, this);
   m_pfoCreator = std::make_unique<DDPfoCreatorIdea>(m_pfoCreatorSettings, m_pandora, this);
 
   try {
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterEnergyCorrectionPlugin(m_pandora, "DualReadoutCorrection", pandora::EnergyCorrectionType::HADRONIC,
                                                                        new lc_content::DualReadoutCorrection));
+
+    // Magnetic field from the dd4hep field map: algorithms retrieve it via the plugin (position
+    // dependent) instead of a hardcoded XML value.
+    dd4hep::Detector& mainDetector = dd4hep::Detector::getInstance();
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
+                            PandoraApi::SetBFieldPlugin(m_pandora, new DDBFieldPlugin(mainDetector)));
 
     // Register algorithms
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
@@ -112,10 +118,6 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "SatelliteAssignmentOnnx",
                                                                  new lc_content::SatelliteAssignmentOnnxAlgorithm::Factory));
-
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "BremRecovery",
-                                                                 new BremRecoveryAlgorithm::Factory));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "CreatePfo",

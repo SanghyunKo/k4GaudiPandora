@@ -2,9 +2,9 @@
 #define DDPandoraPFAIdeaAlgorithm_h 1
 
 #include "DualReadoutCaloHitCreator.h"
-#include "DDTrackCreatorIDEA.h"
+#include "DDTrackCreatorIdea.h"
 #include "DDPfoCreatorIdea.h"
-#include "DDGeometryCreatorIDEA.h"
+#include "DDGeometryCreatorIdea.h"
 
 #include "edm4hep/CalorimeterHitCollection.h"
 #include "edm4hep/ClusterCollection.h"
@@ -56,14 +56,14 @@ private:
   std::unique_ptr<ExternalClusterHolder> m_extClusterHolder;
 
   pandora::Pandora m_pandora;
-  std::unique_ptr<DDGeometryCreatorIDEA> m_geometryCreator;
+  std::unique_ptr<DDGeometryCreatorIdea> m_geometryCreator;
   std::unique_ptr<DualReadoutCaloHitCreator> m_caloHitCreator;
-  std::unique_ptr<DDTrackCreatorIDEA> m_trackCreator;
+  std::unique_ptr<DDTrackCreatorIdea> m_trackCreator;
   std::unique_ptr<DDPfoCreatorIdea> m_pfoCreator;
 
-  DDGeometryCreatorIDEA::Settings m_geometryCreatorSettings;
+  DDGeometryCreatorIdea::Settings m_geometryCreatorSettings;
   DualReadoutCaloHitCreator::Settings m_caloHitCreatorSettings;
-  DDTrackCreatorIDEA::Settings m_trackCreatorSettings;
+  DDTrackCreatorIdea::Settings m_trackCreatorSettings;
   DDPfoCreatorIdea::Settings m_pfoCreatorSettings;
 
   Gaudi::Property<std::string> m_pandoraSettingsXmlFile{this, "PandoraSettingsXmlFile", "",
