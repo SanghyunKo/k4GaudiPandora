@@ -27,6 +27,7 @@ set(_plugin_sources ${CMAKE_CURRENT_LIST_DIR}/
                     src/DDExternalClusteringAlgorithm.cc
                     src/DDGeometryCreator.cc
                     src/DDMCParticleCreator.cc
+                    src/PfoCreatorBase.cc
                     src/DDPfoCreator.cc
                     src/DDSimpleMuonDigi.cc
                     src/DDTrackCreatorBase.cc
@@ -38,7 +39,7 @@ set(_plugin_sources ${CMAKE_CURRENT_LIST_DIR}/
                     src/DDCaloHitCreatorALLEGRO.cc
                     src/DDTrackCreatorIdea.cc
                     src/DualReadoutCaloHitCreator.cc
-                    src/DDPfoCreatorIdea.cc
+                    src/PfoCreatorIdea.cc
                     src/DDGeometryCreatorIdea.cc
 )
 

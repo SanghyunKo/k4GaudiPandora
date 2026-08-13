@@ -64,12 +64,14 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
   m_geometryCreator = std::make_unique<DDGeometryCreatorIdea>(m_geometryCreatorSettings, m_pandora, this);
   m_caloHitCreator = std::make_unique<DualReadoutCaloHitCreator>(m_caloHitCreatorSettings, m_pandora, this);
   m_trackCreator = std::make_unique<DDTrackCreatorIdea>(m_trackCreatorSettings, m_pandora, this);
-  m_pfoCreator = std::make_unique<DDPfoCreatorIdea>(m_pfoCreatorSettings, m_pandora, this);
 
   try {
+    // Pandora takes ownership of the plugin, but the pointer is kept here so that chi can be read
+    // back from it once the settings xml has been parsed - see below.
+    auto* pDualReadoutCorrection = new lc_content::DualReadoutCorrection;
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterEnergyCorrectionPlugin(m_pandora, "DualReadoutCorrection", pandora::EnergyCorrectionType::HADRONIC,
-                                                                       new lc_content::DualReadoutCorrection));
+                                                                       pDualReadoutCorrection));
 
     // Magnetic field from the dd4hep field map: algorithms retrieve it via the plugin (position
     // dependent) instead of a hardcoded XML value.
@@ -131,6 +133,14 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::ReadSettings(m_pandora, m_pandoraSettingsXmlFile))
+
+    // chi is only known once pandora has parsed the settings xml, so the pfo creator is built here
+    // rather than alongside the other creators above.  Taking chi from the very plugin instance
+    // that will apply the correction keeps the cluster energy error from drifting out of sync with
+    // the energy itself.
+    m_pfoCreatorSettings.m_chiEcal = pDualReadoutCorrection->GetChiEcal();
+    m_pfoCreatorSettings.m_chiHcal = pDualReadoutCorrection->GetChiHcal();
+    m_pfoCreator = std::make_unique<PfoCreatorIdea>(m_pfoCreatorSettings, m_pandora, this);
   } catch (pandora::StatusCodeException& statusCodeException) {
     error() << "Pandora failed to initialize DDPandoraPFAIdeaAlgorithm: " << statusCodeException.ToString() << endmsg;
     throw;
@@ -200,7 +210,7 @@ DDPandoraPFAIdeaAlgorithm::operator()(
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::ProcessEvent(m_pandora));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            m_pfoCreator->CreatePFOs(outClusterColl, pfoColl))
+                            m_pfoCreator->CreateParticleFlowObjects(outClusterColl, pfoColl))
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::Reset(m_pandora))
 

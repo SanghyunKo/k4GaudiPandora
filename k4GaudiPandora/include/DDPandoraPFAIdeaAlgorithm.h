@@ -3,7 +3,7 @@
 
 #include "DualReadoutCaloHitCreator.h"
 #include "DDTrackCreatorIdea.h"
-#include "DDPfoCreatorIdea.h"
+#include "PfoCreatorIdea.h"
 #include "DDGeometryCreatorIdea.h"
 
 #include "edm4hep/CalorimeterHitCollection.h"
@@ -59,12 +59,12 @@ private:
   std::unique_ptr<DDGeometryCreatorIdea> m_geometryCreator;
   std::unique_ptr<DualReadoutCaloHitCreator> m_caloHitCreator;
   std::unique_ptr<DDTrackCreatorIdea> m_trackCreator;
-  std::unique_ptr<DDPfoCreatorIdea> m_pfoCreator;
+  std::unique_ptr<PfoCreatorIdea> m_pfoCreator;
 
   DDGeometryCreatorIdea::Settings m_geometryCreatorSettings;
   DualReadoutCaloHitCreator::Settings m_caloHitCreatorSettings;
   DDTrackCreatorIdea::Settings m_trackCreatorSettings;
-  DDPfoCreatorIdea::Settings m_pfoCreatorSettings;
+  PfoCreatorIdea::Settings m_pfoCreatorSettings;
 
   Gaudi::Property<std::string> m_pandoraSettingsXmlFile{this, "PandoraSettingsXmlFile", "",
                                                         "The pandora settings xml file"};
