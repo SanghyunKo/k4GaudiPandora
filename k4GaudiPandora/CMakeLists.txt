@@ -43,11 +43,11 @@ set(_plugin_sources ${CMAKE_CURRENT_LIST_DIR}/
                     src/DDGeometryCreatorIdea.cc
 )
 
-# DDPandoraPFAIdeaAlgorithm registers the ONNX algorithms (ClusterNeutralPid,
+# PandoraPFAIdeaAlgorithm registers the ONNX algorithms (ClusterNeutralPid,
 # SatelliteAssignmentOnnx) provided by LCContentML, so it is built only when ML is enabled.
 option(K4GP_BUILD_ML "Build the ONNX/ML-dependent IDEA reconstruction (needs LCContentML)" OFF)
 if(K4GP_BUILD_ML)
-    list(APPEND _plugin_sources src/DDPandoraPFAIdeaAlgorithm.cc)
+    list(APPEND _plugin_sources src/PandoraPFAIdeaAlgorithm.cc)
 endif()
 
 gaudi_add_module(k4GaudiPandoraPlugins

@@ -1,5 +1,5 @@
-#ifndef DDPandoraPFAIdeaAlgorithm_h
-#define DDPandoraPFAIdeaAlgorithm_h 1
+#ifndef PandoraPFAIdeaAlgorithm_h
+#define PandoraPFAIdeaAlgorithm_h 1
 
 #include "DualReadoutCaloHitCreator.h"
 #include "DDTrackCreatorIdea.h"
@@ -28,15 +28,15 @@ namespace {
 class ExternalEventParameter;
 class ExternalClusterHolder;
 
-struct DDPandoraPFAIdeaAlgorithm final
+struct PandoraPFAIdeaAlgorithm final
     : k4FWCore::MultiTransformer<std::tuple<edm4hep::ClusterCollection,
                                             edm4hep::ReconstructedParticleCollection>(
           const edm4hep::TrackCollection&,
           const std::vector<const edm4hep::CalorimeterHitCollection*>&,
           const std::vector<const edm4hep::ClusterCollection*>&)> {
 public:
-  DDPandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc);
-  ~DDPandoraPFAIdeaAlgorithm()=default;
+  PandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc);
+  ~PandoraPFAIdeaAlgorithm()=default;
 
   StatusCode initialize() override;
   StatusCode finalize() override { return StatusCode::SUCCESS; }

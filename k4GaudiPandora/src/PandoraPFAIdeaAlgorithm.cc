@@ -1,4 +1,4 @@
-#include "DDPandoraPFAIdeaAlgorithm.h"
+#include "PandoraPFAIdeaAlgorithm.h"
 #include "DDExternalClusteringAlgorithm.h"
 
 #include "DD4hep/DD4hepUnits.h"
@@ -39,7 +39,7 @@ public:
 };
 } // namespace lc_content
 
-DDPandoraPFAIdeaAlgorithm::DDPandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc)
+PandoraPFAIdeaAlgorithm::PandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {
                            KeyValue("inputTrackCollection", "TracksFromGenParticles"),
@@ -52,7 +52,7 @@ DDPandoraPFAIdeaAlgorithm::DDPandoraPFAIdeaAlgorithm(const std::string& name, IS
                        }),
       m_pandora() {}
 
-StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
+StatusCode PandoraPFAIdeaAlgorithm::initialize() {
   m_geoSvc = serviceLocator()->service("GeoSvc"); // important to initialize m_geoSvc
   if (!m_geoSvc) {
     error() << "Unable to retrieve the GeoSvc" << endmsg;
@@ -142,22 +142,22 @@ StatusCode DDPandoraPFAIdeaAlgorithm::initialize() {
     m_pfoCreatorSettings.m_chiHcal = pDualReadoutCorrection->GetChiHcal();
     m_pfoCreator = std::make_unique<PfoCreatorIdea>(m_pfoCreatorSettings, m_pandora, this);
   } catch (pandora::StatusCodeException& statusCodeException) {
-    error() << "Pandora failed to initialize DDPandoraPFAIdeaAlgorithm: " << statusCodeException.ToString() << endmsg;
+    error() << "Pandora failed to initialize PandoraPFAIdeaAlgorithm: " << statusCodeException.ToString() << endmsg;
     throw;
   } catch (std::exception& exception) {
-    error() << "DDPandoraPFAIdeaAlgorithm failure: " << exception.what() << endmsg;
+    error() << "PandoraPFAIdeaAlgorithm failure: " << exception.what() << endmsg;
     return StatusCode::FAILURE;
   }
 
   return StatusCode::SUCCESS;
 }
 
-const pandora::Pandora* DDPandoraPFAIdeaAlgorithm::GetPandora() const {
+const pandora::Pandora* PandoraPFAIdeaAlgorithm::GetPandora() const {
   return &m_pandora;
 }
 
 std::tuple<edm4hep::ClusterCollection, edm4hep::ReconstructedParticleCollection>
-DDPandoraPFAIdeaAlgorithm::operator()(
+PandoraPFAIdeaAlgorithm::operator()(
     const edm4hep::TrackCollection& trackColl,
     const std::vector<const edm4hep::CalorimeterHitCollection*>& caloHitColls,
     const std::vector<const edm4hep::ClusterCollection*>& clusterColls) const {
@@ -231,7 +231,7 @@ DDPandoraPFAIdeaAlgorithm::operator()(
   }
 }
 
-void DDPandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
+void PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
   // copy steering parameters to the settings objects
   m_geometryCreatorSettings.m_isOption2 = m_isOption2;
 
@@ -271,4 +271,4 @@ void DDPandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
   }
 }
 
-DECLARE_COMPONENT(DDPandoraPFAIdeaAlgorithm)
+DECLARE_COMPONENT(PandoraPFAIdeaAlgorithm)
