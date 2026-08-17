@@ -6,38 +6,18 @@
 #include "DD4hep/Detector.h"
 #include "DD4hep/DetectorSelector.h"
 
-#include "LCMonitoring/VisualMonitoringAlgorithm.h"
-#include "LCTrackClusterAssociation/TrackClusterAssociationAlgorithm.h"
-
+#include "LCContent.h"
 #include "LCPlugins/DualReadoutCorrection.h"
 #include "MLInference/ClusterNeutralPidAlgorithm.h"
 #include "LCParticleId/ForwardPhotonIdAlgorithm.h"
 #include "LCClustering/EcalSeededClusteringAlgorithm.h"
 #include "MLInference/SatelliteAssignmentOnnxAlgorithm.h"
 #include "LCUtility/IsolatedHitPreparationAlgorithm.h"
-#include "LCTopologicalAssociation/IsolatedHitMergingAlgorithm.h"
 #include "LCPfoConstruction/IdeaPfoCreationAlgorithm.h"
 
 #include "DDPandoraPFANewAlgorithm.h"
 #include "DDBFieldPlugin.h"
 #include "DDGeometryCreatorIdea.h"
-
-namespace lc_content {
-class TrackClusterAssociationAlgorithmFactory : public pandora::AlgorithmFactory {
-public:
-  pandora::Algorithm *CreateAlgorithm() const { return new TrackClusterAssociationAlgorithm(); };
-};
-
-class IsolatedHitMergingAlgorithmFactory : public pandora::AlgorithmFactory {
-public:
-  pandora::Algorithm *CreateAlgorithm() const { return new IsolatedHitMergingAlgorithm(); };
-};
-
-class VisualMonitoringAlgorithmFactory : public pandora::AlgorithmFactory {
-public:
-  pandora::Algorithm *CreateAlgorithm() const { return new VisualMonitoringAlgorithm(); };
-};
-} // namespace lc_content
 
 PandoraPFAIdeaAlgorithm::PandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -53,20 +33,26 @@ PandoraPFAIdeaAlgorithm::PandoraPFAIdeaAlgorithm(const std::string& name, ISvcLo
       m_pandora() {}
 
 StatusCode PandoraPFAIdeaAlgorithm::initialize() {
-  m_geoSvc = serviceLocator()->service("GeoSvc"); // important to initialize m_geoSvc
-  if (!m_geoSvc) {
-    error() << "Unable to retrieve the GeoSvc" << endmsg;
-    return StatusCode::FAILURE;
-  }
-
-  if (finaliseSteeringParameters().isFailure())
-    return StatusCode::FAILURE;
-
-  m_geometryCreator = std::make_unique<DDGeometryCreatorIdea>(m_geometryCreatorSettings, m_pandora, this);
-  m_caloHitCreator = std::make_unique<DualReadoutCaloHitCreator>(m_caloHitCreatorSettings, m_pandora, this);
-  m_trackCreator = std::make_unique<DDTrackCreatorIdea>(m_trackCreatorSettings, m_pandora, this);
-
+  // The pandora API and getExtension report failures by throwing; initialize() owes Gaudi a
+  // StatusCode, so nothing is rethrown.
   try {
+    m_geoSvc = serviceLocator()->service("GeoSvc");
+    if (!m_geoSvc) {
+      error() << "Unable to retrieve the GeoSvc" << endmsg;
+      return StatusCode::FAILURE;
+    }
+
+    if (finaliseSteeringParameters().isFailure())
+      return StatusCode::FAILURE;
+
+    m_geometryCreator = std::make_unique<DDGeometryCreatorIdea>(m_geometryCreatorSettings, m_pandora, this);
+    m_caloHitCreator = std::make_unique<DualReadoutCaloHitCreator>(m_caloHitCreatorSettings, m_pandora, this);
+    m_trackCreator = std::make_unique<DDTrackCreatorIdea>(m_trackCreatorSettings, m_pandora, this);
+
+    // TrackClusterAssociation, IsolatedHitMerging and VisualMonitoring come from here; only the
+    // IDEA-specific algorithms are registered individually below.
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, LCContent::RegisterAlgorithms(m_pandora))
+
     // Pandora takes ownership of the plugin, but the pointer is kept here so that chi can be read
     // back from it once the settings xml has been parsed - see below.
     auto* pDualReadoutCorrection = new lc_content::DualReadoutCorrection;
@@ -86,17 +72,15 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
                                                                  new DDExternalClusteringAlgorithm::Factory));
 
     // Set external parameters for DDExternalClusteringAlgorithm
-    // everything is owned by this algorithm
-    m_extEvtParam = std::make_unique<ExternalEventParameter>();
+    // ExternalClusterHolder is owned by this algorithm
+    // ExternalEventParameter is created by this algo and deleted by Pandora
+    m_extEvtParam = new ExternalEventParameter();
     m_extClusterHolder = std::make_unique<ExternalClusterHolder>();
     m_extEvtParam->m_externalClusterHolder = m_extClusterHolder.get();
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::SetExternalParameters(m_pandora, "DDExternalClustering", m_extEvtParam.get()))
+                            PandoraApi::SetExternalParameters(m_pandora, "DDExternalClustering", m_extEvtParam))
 
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "TrackClusterAssociation",
-                                                                 new lc_content::TrackClusterAssociationAlgorithmFactory));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "ClusterNeutralPid",
@@ -110,9 +94,6 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "IsolatedHitPreparation",
                                                                  new lc_content::IsolatedHitPreparationAlgorithm::Factory));
 
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "IsolatedHitMerging",
-                                                                 new lc_content::IsolatedHitMergingAlgorithmFactory));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "EcalSeededClustering",
@@ -126,9 +107,6 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "CreatePfo",
                                                                  new lc_content::IdeaPfoCreationAlgorithm::Factory));
 
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "VisualMonitoring",
-                                                                 new lc_content::VisualMonitoringAlgorithmFactory));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, m_geometryCreator->CreateGeometry())
 
@@ -142,15 +120,19 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
     m_pfoCreatorSettings.m_chiEcal = pDualReadoutCorrection->GetChiEcal();
     m_pfoCreatorSettings.m_chiHcal = pDualReadoutCorrection->GetChiHcal();
     m_pfoCreator = std::make_unique<PfoCreatorIdea>(m_pfoCreatorSettings, m_pandora, this);
-  } catch (pandora::StatusCodeException& statusCodeException) {
-    error() << "Pandora failed to initialize PandoraPFAIdeaAlgorithm: " << statusCodeException.ToString() << endmsg;
-    throw;
-  } catch (std::exception& exception) {
-    error() << "PandoraPFAIdeaAlgorithm failure: " << exception.what() << endmsg;
-    return StatusCode::FAILURE;
+
+    return StatusCode::SUCCESS;
+  } catch (const pandora::StatusCodeException& statusCodeException) {
+    // pandora::StatusCodeException does NOT derive from std::exception, so it
+    // must be caught explicitly (otherwise it falls through to catch(...)).
+    error() << "Failed to initialize PandoraPFAIdeaAlgorithm: " << statusCodeException.ToString() << endmsg;
+  } catch (const std::exception& exception) {
+    error() << "Failed to initialize PandoraPFAIdeaAlgorithm: " << exception.what() << endmsg;
+  } catch (...) {
+    error() << "Failed to initialize PandoraPFAIdeaAlgorithm: unrecognized exception" << endmsg;
   }
 
-  return StatusCode::SUCCESS;
+  return StatusCode::FAILURE;
 }
 
 const pandora::Pandora* PandoraPFAIdeaAlgorithm::GetPandora() const {

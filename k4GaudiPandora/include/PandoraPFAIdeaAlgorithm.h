@@ -52,7 +52,8 @@ private:
   StatusCode finaliseSteeringParameters();
 
   SmartIF<IGeoSvc> m_geoSvc;
-  std::unique_ptr<ExternalEventParameter> m_extEvtParam;
+  ExternalEventParameter* m_extEvtParam = nullptr; ///< external event parameter (pandora::ExternalParameters)
+                                                   ///< created by this algo but deleted by Pandora
   std::unique_ptr<ExternalClusterHolder> m_extClusterHolder;
 
   pandora::Pandora m_pandora;
