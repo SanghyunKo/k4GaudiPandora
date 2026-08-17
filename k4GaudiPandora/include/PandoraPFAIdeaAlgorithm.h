@@ -49,7 +49,7 @@ public:
   const pandora::Pandora* GetPandora() const;
 
 private:
-  void finaliseSteeringParameters();
+  StatusCode finaliseSteeringParameters();
 
   SmartIF<IGeoSvc> m_geoSvc;
   std::unique_ptr<ExternalEventParameter> m_extEvtParam;

@@ -59,7 +59,8 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
     return StatusCode::FAILURE;
   }
 
-  finaliseSteeringParameters();
+  if (finaliseSteeringParameters().isFailure())
+    return StatusCode::FAILURE;
 
   m_geometryCreator = std::make_unique<DDGeometryCreatorIdea>(m_geometryCreatorSettings, m_pandora, this);
   m_caloHitCreator = std::make_unique<DualReadoutCaloHitCreator>(m_caloHitCreatorSettings, m_pandora, this);
@@ -231,7 +232,7 @@ PandoraPFAIdeaAlgorithm::operator()(
   }
 }
 
-void PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
+StatusCode PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
   // copy steering parameters to the settings objects
   m_geometryCreatorSettings.m_isOption2 = m_isOption2;
 
@@ -258,12 +259,31 @@ void PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
   // cylindrical, so m_eCalBarrelInnerSymmetry is left at 0 and only the radius is required.
   m_trackCreatorSettings.m_eCalBarrelInnerR = ecalExtension->extent[0] / dd4hep::mm;
 
+  const size_t nSubDetectors = m_systemIDs.value().size();
+  if (nSubDetectors == 0) {
+    error() << "CaloSystemIDs is empty, no calorimeter is configured" << endmsg;
+    return StatusCode::FAILURE;
+  }
+
+  auto checkLength = [this, nSubDetectors](const auto& prop) {
+    if (prop.value().size() == nSubDetectors)
+      return true;
+    error() << prop.name() << " has " << prop.value().size() << " entries but CaloSystemIDs has " << nSubDetectors
+            << "; the calo steering properties are indexed together, one entry per calorimeter" << endmsg;
+    return false;
+  };
+
+  // single & rather than &&, so that every mismatched property is reported instead of just the first
+  if (!(checkLength(m_collectionTypes) & checkLength(m_layerFieldNames) &
+        checkLength(m_encodingStrings) & checkLength(m_cellSizes)))
+    return StatusCode::FAILURE;
+
   // calo hit creator settings
   m_caloHitCreatorSettings.m_cherenkovFieldName = m_cherenkovFieldName;
   m_caloHitCreatorSettings.m_theta = std::atan2(ecalExtension->extent[0], ecalExtension->extent[2]);
-  m_caloHitCreatorSettings.m_subDetectorSettings.resize(m_systemIDs.value().size());
+  m_caloHitCreatorSettings.m_subDetectorSettings.resize(nSubDetectors);
 
-  for (size_t icol = 0; icol < m_systemIDs.value().size(); ++icol) {
+  for (size_t icol = 0; icol < nSubDetectors; ++icol) {
     auto& subdetectorSetting = m_caloHitCreatorSettings.m_subDetectorSettings.at(icol);
     subdetectorSetting.m_systemID = m_systemIDs.value().at(icol);
     subdetectorSetting.m_encodingString = m_encodingStrings.value().at(icol);
@@ -271,9 +291,14 @@ void PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
     subdetectorSetting.m_collectionType = m_collectionTypes.value().at(icol);
     subdetectorSetting.m_cellSize = m_cellSizes.value().at(icol);
 
-    for (const auto& layer : ecalExtension->layers)
-      subdetectorSetting.m_layerThicknesses.push_back(layer.sensitive_thickness);
+    // A dual-readout tube is a single channel spanning the full depth, so a subdetector with no
+    // layer field has no per-layer thickness and DualReadoutCaloHitCreator falls back to the cell size.
+    if (!subdetectorSetting.m_layerFieldName.empty())
+      for (const auto& layer : ecalExtension->layers)
+        subdetectorSetting.m_layerThicknesses.push_back(layer.sensitive_thickness);
   }
+
+  return StatusCode::SUCCESS;
 }
 
 DECLARE_COMPONENT(PandoraPFAIdeaAlgorithm)
