@@ -1,12 +1,12 @@
 /**
- *  @file   k4GaudiPandora/src/DDGeometryCreatorIdea.cc
+ *  @file   k4GaudiPandora/src/GeometryCreatorIdea.cc
  *
  *  @brief  Implementation of the geometry creator class.
  *
  *  $Log: $
  */
 
-#include "DDGeometryCreatorIdea.h"
+#include "GeometryCreatorIdea.h"
 
 #include "DD4hep/DetType.h"
 #include "DDRec/DetectorData.h"
@@ -15,13 +15,13 @@
 // dd4hep::rec::LayeredCalorimeterData * getExtension(std::string detectorName);
 dd4hep::rec::LayeredCalorimeterData* getExtension(unsigned int includeFlag, unsigned int excludeFlag = 0);
 
-DDGeometryCreatorIdea::DDGeometryCreatorIdea(const Settings& settings, pandora::Pandora& pPandora,
+GeometryCreatorIdea::GeometryCreatorIdea(const Settings& settings, pandora::Pandora& pPandora,
                                              Gaudi::Algorithm* algorithm)
-    : DDGeometryCreator(settings, pPandora, algorithm), m_settings(settings) {}
+    : DDGeometryCreator(settings, pPandora, algorithm) {}
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
-pandora::StatusCode DDGeometryCreatorIdea::CreateGeometry() const {
+pandora::StatusCode GeometryCreatorIdea::CreateGeometry() const {
   try {
     SubDetectorTypeMap subDetectorTypeMap;
     this->SetMandatorySubDetectorParameters(subDetectorTypeMap);
@@ -34,7 +34,7 @@ pandora::StatusCode DDGeometryCreatorIdea::CreateGeometry() const {
                                PandoraApi::Geometry::SubDetector::Create(m_pPandora, iter->second));
     }
   } catch (std::exception& exception) {
-    m_algorithm.error() << "Failure in DDGeometryCreatorIdea, exception: " << exception.what() << endmsg;
+    m_algorithm.error() << "Failure in GeometryCreatorIdea, exception: " << exception.what() << endmsg;
     throw exception;
   }
 
@@ -43,7 +43,7 @@ pandora::StatusCode DDGeometryCreatorIdea::CreateGeometry() const {
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
-void DDGeometryCreatorIdea::SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const {
+void GeometryCreatorIdea::SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const {
   PandoraApi::Geometry::SubDetector::Parameters eCalBarrelParameters, eCalEndCapParameters, hCalBarrelParameters, hCalEndCapParameters;
   // hCalBarrelParameters, hCalEndCapParameters, muonBarrelParameters, muonEndCapParameters;
   // TODO they're not used anywhere at the moment, so ignoring them
@@ -77,7 +77,7 @@ void DDGeometryCreatorIdea::SetMandatorySubDetectorParameters(SubDetectorTypeMap
   // PandoraApi::Geometry::SubDetector::Parameters coilParameters; // TODO retrive coil parameters
 }
 
-void DDGeometryCreatorIdea::SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+void GeometryCreatorIdea::SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
                                               PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
                                               PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
   unsigned layerVecSize = inputParameters.layers.size();  // zero for option 1
@@ -139,7 +139,7 @@ void DDGeometryCreatorIdea::SetEcalParameters(const dd4hep::rec::LayeredCalorime
   return;
 }
 
-void DDGeometryCreatorIdea::SetHcalBarrelParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+void GeometryCreatorIdea::SetHcalBarrelParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
                                               PandoraApi::Geometry::SubDetector::Parameters& paramBarrel) const {
 
 
@@ -175,7 +175,7 @@ void DDGeometryCreatorIdea::SetHcalBarrelParameters(const dd4hep::rec::LayeredCa
   return;
 }
 
-void DDGeometryCreatorIdea::SetHcalEndcapParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
+void GeometryCreatorIdea::SetHcalEndcapParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
                                               PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
 
   unsigned layerVecSize = 0;

@@ -17,7 +17,7 @@
 
 #include "DDPandoraPFANewAlgorithm.h"
 #include "DDBFieldPlugin.h"
-#include "DDGeometryCreatorIdea.h"
+#include "GeometryCreatorIdea.h"
 
 PandoraPFAIdeaAlgorithm::PandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -45,9 +45,9 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
     if (finaliseSteeringParameters().isFailure())
       return StatusCode::FAILURE;
 
-    m_geometryCreator = std::make_unique<DDGeometryCreatorIdea>(m_geometryCreatorSettings, m_pandora, this);
+    m_geometryCreator = std::make_unique<GeometryCreatorIdea>(m_geometryCreatorSettings, m_pandora, this);
     m_caloHitCreator = std::make_unique<DualReadoutCaloHitCreator>(m_caloHitCreatorSettings, m_pandora, this);
-    m_trackCreator = std::make_unique<DDTrackCreatorIdea>(m_trackCreatorSettings, m_pandora, this);
+    m_trackCreator = std::make_unique<TrackCreatorIdea>(m_trackCreatorSettings, m_pandora, this);
 
     // TrackClusterAssociation, IsolatedHitMerging and VisualMonitoring come from here; only the
     // IDEA-specific algorithms are registered individually below.
@@ -215,9 +215,6 @@ PandoraPFAIdeaAlgorithm::operator()(
 }
 
 StatusCode PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
-  // copy steering parameters to the settings objects
-  m_geometryCreatorSettings.m_isOption2 = m_isOption2;
-
   // TODO avoid duplication with DDPandoraPFANewAlgorithm
   auto getFieldFromCompact = []() -> double {
     dd4hep::Detector& mainDetector = dd4hep::Detector::getInstance();
@@ -228,7 +225,7 @@ StatusCode PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
     return magneticFieldVector[2] / dd4hep::tesla; // z component at (0,0,0)
   };
 
-  // The same selection DDGeometryCreatorIdea passes to SetEcalParameters, i.e. this is the SCEPCal
+  // The same selection GeometryCreatorIdea passes to SetEcalParameters, i.e. this is the SCEPCal
   // (ECAL) extension -- not the dual-readout one, despite the name it used to carry here.
   const dd4hep::rec::LayeredCalorimeterData* ecalExtension =
       getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL | dd4hep::DetType::ENDCAP),

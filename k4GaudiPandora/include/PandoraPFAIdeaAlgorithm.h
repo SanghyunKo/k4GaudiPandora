@@ -2,9 +2,9 @@
 #define PandoraPFAIdeaAlgorithm_h 1
 
 #include "DualReadoutCaloHitCreator.h"
-#include "DDTrackCreatorIdea.h"
+#include "TrackCreatorIdea.h"
 #include "PfoCreatorIdea.h"
-#include "DDGeometryCreatorIdea.h"
+#include "GeometryCreatorIdea.h"
 
 #include "edm4hep/CalorimeterHitCollection.h"
 #include "edm4hep/ClusterCollection.h"
@@ -57,22 +57,19 @@ private:
   std::unique_ptr<ExternalClusterHolder> m_extClusterHolder;
 
   pandora::Pandora m_pandora;
-  std::unique_ptr<DDGeometryCreatorIdea> m_geometryCreator;
+  std::unique_ptr<GeometryCreatorIdea> m_geometryCreator;
   std::unique_ptr<DualReadoutCaloHitCreator> m_caloHitCreator;
-  std::unique_ptr<DDTrackCreatorIdea> m_trackCreator;
+  std::unique_ptr<TrackCreatorIdea> m_trackCreator;
   std::unique_ptr<PfoCreatorIdea> m_pfoCreator;
 
-  DDGeometryCreatorIdea::Settings m_geometryCreatorSettings;
+  DDGeometryCreator::Settings m_geometryCreatorSettings;
   DualReadoutCaloHitCreator::Settings m_caloHitCreatorSettings;
-  DDTrackCreatorIdea::Settings m_trackCreatorSettings;
+  TrackCreatorIdea::Settings m_trackCreatorSettings;
   PfoCreatorIdea::Settings m_pfoCreatorSettings;
 
   Gaudi::Property<std::string> m_pandoraSettingsXmlFile{this, "PandoraSettingsXmlFile", "",
                                                         "The pandora settings xml file"};
 
-  // Geometry settings
-  Gaudi::Property<bool> m_isOption2{this, "IsOption2", true,
-      "Flag for the IDEA option: true for option 2 (crystal DRC), false for option 1 (fiber DRC)"};
 
   // calo hit creator settings
   Gaudi::Property<std::string> m_cherenkovFieldName{this, "CherenkovFieldName", "cherenkov",

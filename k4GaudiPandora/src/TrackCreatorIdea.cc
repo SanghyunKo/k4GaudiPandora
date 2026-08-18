@@ -1,9 +1,9 @@
-#include "DDTrackCreatorIdea.h"
+#include "TrackCreatorIdea.h"
 
 #include "Pandora/PandoraEnumeratedTypes.h"
 #include "Pandora/PandoraInputTypes.h"
 
-DDTrackCreatorIdea::DDTrackCreatorIdea(const Settings& settings, pandora::Pandora& pandora,
+TrackCreatorIdea::TrackCreatorIdea(const Settings& settings, pandora::Pandora& pandora,
                                        const Gaudi::Algorithm* algorithm)
     : DDTrackCreatorBase(settings, pandora, algorithm) {
   // Deliberately no InitialiseTrackingSystem(): the track states arrive already extrapolated to the
@@ -11,7 +11,7 @@ DDTrackCreatorIdea::DDTrackCreatorIdea(const Settings& settings, pandora::Pandor
   // DDKalTest tracking system is never needed.
 }
 
-pandora::StatusCode DDTrackCreatorIdea::CreateTracks(const std::vector<edm4hep::Track>& tracks) {
+pandora::StatusCode TrackCreatorIdea::CreateTracks(const std::vector<edm4hep::Track>& tracks) {
   // Track selection (calo-reaching, no ghost helices) is done upstream in
   // TracksFromGenParticles; create a Pandora track for every input track.
   for (const auto& pTrack : tracks) {

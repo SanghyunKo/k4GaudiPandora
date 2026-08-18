@@ -1,5 +1,5 @@
-#ifndef DDTrackCreatorIdea_h
-#define DDTrackCreatorIdea_h 1
+#ifndef TrackCreatorIdea_h
+#define TrackCreatorIdea_h 1
 
 #include "DDTrackCreatorBase.h"
 
@@ -10,10 +10,10 @@
  *  and already extrapolated to the calorimeter face, so this creator neither applies quality cuts
  *  nor builds the DDKalTest tracking system: only CreateTracks differs from the base.
  */
-class DDTrackCreatorIdea : public DDTrackCreatorBase {
+class TrackCreatorIdea : public DDTrackCreatorBase {
 public:
-  DDTrackCreatorIdea(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* alg);
-  ~DDTrackCreatorIdea() override = default;
+  TrackCreatorIdea(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* alg);
+  ~TrackCreatorIdea() override = default;
 
   pandora::StatusCode CreateTracks(const std::vector<edm4hep::Track>& tracks) override;
 };

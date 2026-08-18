@@ -30,7 +30,6 @@ params = {
     "inputClusterCollections": ["TopoGrownClusters"],
     "outputPfoCollection": "PandoraPfaIdea",
     "outputClusterCollection": "PandoraClusters",
-    "IsOption2": True,
     "CherenkovFieldName": "cherenkov",
     "inputCaloHitCollections": [
         "SCEPCal_digi_cheren",

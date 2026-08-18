@@ -350,8 +350,12 @@ protected:
    *  @brief  Obtain track time when it reaches ECAL
    *
    *  @param  pTrack the lcio track
+   *  @param  trackTime to receive the generic time: path length from the reference point to the
+   *          intersection, divided by momentum
+   *
+   *  @return STATUS_CODE_NOT_FOUND if the helix meets neither calorimeter surface
    */
-  float CalculateTrackTimeAtCalorimeter(const edm4hep::Track& pTrack) const;
+  pandora::StatusCode CalculateTrackTimeAtCalorimeter(const edm4hep::Track& pTrack, float& trackTime) const;
 };
 
 //------------------------------------------------------------------------------------------------------------------------------------------

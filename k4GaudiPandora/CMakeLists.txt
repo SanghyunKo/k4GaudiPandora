@@ -37,10 +37,10 @@ set(_plugin_sources ${CMAKE_CURRENT_LIST_DIR}/
                     src/DDGeometryCreatorALLEGRO.cc
                     src/DDTrackCreatorALLEGRO.cc
                     src/DDCaloHitCreatorALLEGRO.cc
-                    src/DDTrackCreatorIdea.cc
+                    src/TrackCreatorIdea.cc
                     src/DualReadoutCaloHitCreator.cc
                     src/PfoCreatorIdea.cc
-                    src/DDGeometryCreatorIdea.cc
+                    src/GeometryCreatorIdea.cc
 )
 
 # PandoraPFAIdeaAlgorithm registers the ONNX algorithms (ClusterNeutralPid,

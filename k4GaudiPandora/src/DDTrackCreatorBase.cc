@@ -287,47 +287,70 @@ bool DDTrackCreatorBase::IsConflictingRelationship(TrackRange const& trackVec) c
   return false;
 }
 
-edm4hep::TrackState getEDM4hepTrackState(const edm4hep::Track& track, int location) {
+pandora::StatusCode getEDM4hepTrackState(const edm4hep::Track& track, int location,
+                                         edm4hep::TrackState& trackState) {
   for (const auto& ts : track.getTrackStates()) {
     if (ts.location == location) {
-      return ts;
+      trackState = ts;
+      return pandora::STATUS_CODE_SUCCESS;
     }
   }
-  throw pandora::StatusCodeException(pandora::STATUS_CODE_NOT_INITIALIZED);
+
+  return pandora::STATUS_CODE_NOT_FOUND;
 }
 
 void DDTrackCreatorBase::GetTrackStates(const edm4hep::Track& pTrack,
                                         PandoraApi::Track::Parameters& trackParameters) const {
+  edm4hep::TrackState atIP, atFirstHit, atLastHit, atCalorimeter;
 
-  const auto& pTrackState = getEDM4hepTrackState(pTrack, edm4hep::TrackState::AtIP);
+  PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
+                          getEDM4hepTrackState(pTrack, edm4hep::TrackState::AtIP, atIP));
 
   const double bField(this->GetBFieldForTrackState(pTrackState.referencePoint));
   const double pt(bField * 2.99792e-4 / std::fabs(pTrackState.omega));
   trackParameters.m_momentumAtDca =
-      pandora::CartesianVector(std::cos(pTrackState.phi), std::sin(pTrackState.phi), pTrackState.tanLambda) * pt;
+      pandora::CartesianVector(std::cos(atIP.phi), std::sin(atIP.phi), atIP.tanLambda) * pt;
 
-  this->CopyTrackState(getEDM4hepTrackState(pTrack, edm4hep::TrackState::AtFirstHit),
-                       trackParameters.m_trackStateAtStart);
+  PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
+                          getEDM4hepTrackState(pTrack, edm4hep::TrackState::AtFirstHit, atFirstHit));
+  this->CopyTrackState(atFirstHit, trackParameters.m_trackStateAtStart);
 
   // fg: curling TPC tracks have pointers to track segments stored -> need to get track states from last segment!
   const auto& pEndTrack = pTrack.getTracks().empty() ? pTrack : pTrack.getTracks().back();
 
-  this->CopyTrackState(getEDM4hepTrackState(pEndTrack, edm4hep::TrackState::AtLastHit),
-                       trackParameters.m_trackStateAtEnd);
-  this->CopyTrackState(getEDM4hepTrackState(pEndTrack, edm4hep::TrackState::AtCalorimeter),
-                       trackParameters.m_trackStateAtCalorimeter);
+  PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
+                          getEDM4hepTrackState(pEndTrack, edm4hep::TrackState::AtLastHit, atLastHit));
+  this->CopyTrackState(atLastHit, trackParameters.m_trackStateAtEnd);
+
+  // A track that never reached the calorimeter legitimately has no state there.  Pandora requires
+  // the field regardless -- Track::Track reads it unconditionally -- so it is zeroed here and
+  // m_reachesCalorimeter, set by the caller, is what carries the meaning downstream.
+  if (pandora::STATUS_CODE_SUCCESS !=
+      getEDM4hepTrackState(pEndTrack, edm4hep::TrackState::AtCalorimeter, atCalorimeter)) {
+    trackParameters.m_trackStateAtCalorimeter = pandora::TrackState(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+    trackParameters.m_isProjectedToEndCap = false;
+    trackParameters.m_timeAtCalorimeter = -1.f;
+    return;
+  }
+
+  this->CopyTrackState(atCalorimeter, trackParameters.m_trackStateAtCalorimeter);
 
   trackParameters.m_isProjectedToEndCap =
       ((std::fabs(trackParameters.m_trackStateAtCalorimeter.Get().GetPosition().GetZ()) < m_settings.m_eCalEndCapInnerZ)
            ? false
            : true);
 
-  // Convert generic time (length from reference point to intersection, divided by momentum) into nanoseconds
-  const float minGenericTime(this->CalculateTrackTimeAtCalorimeter(pTrack));
   const float particleMass(trackParameters.m_mass.Get());
   const float particleEnergy(
       std::sqrt(particleMass * particleMass + trackParameters.m_momentumAtDca.Get().GetMagnitudeSquared()));
-  trackParameters.m_timeAtCalorimeter = minGenericTime * particleEnergy / 299.792f;
+
+  // Convert generic time (length from reference point to intersection, divided by momentum) into nanoseconds
+  float minGenericTime(0.f);
+  if (pandora::STATUS_CODE_SUCCESS == this->CalculateTrackTimeAtCalorimeter(pTrack, minGenericTime)) {
+    trackParameters.m_timeAtCalorimeter = minGenericTime * particleEnergy / 299.792f;
+  } else {
+    trackParameters.m_timeAtCalorimeter = -1.f; // the helix meets neither calorimeter surface
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -469,7 +492,8 @@ void DDTrackCreatorBase::GetTrackStatesAtCalo(edm4hep::Track const& track,
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
-float DDTrackCreatorBase::CalculateTrackTimeAtCalorimeter(const edm4hep::Track& track) const {
+pandora::StatusCode DDTrackCreatorBase::CalculateTrackTimeAtCalorimeter(const edm4hep::Track& track,
+                                                                        float& trackTime) const {
 
   // Look the state up by location, as everywhere else in this class.
   auto const ts = getEDM4hepTrackState(track, edm4hep::TrackState::AtIP);
@@ -515,10 +539,13 @@ float DDTrackCreatorBase::CalculateTrackTimeAtCalorimeter(const edm4hep::Track& 
     }
   }
 
+  // The helix met neither the barrel surface nor the endcap plane, i.e. the track does not reach
+  // the calorimeter.  That is a physical outcome, not an error.
   if (bestECalProjection.GetMagnitudeSquared() < std::numeric_limits<float>::epsilon())
-    throw pandora::StatusCodeException(pandora::STATUS_CODE_NOT_INITIALIZED);
+    return pandora::STATUS_CODE_NOT_FOUND;
 
-  return minGenericTime;
+  trackTime = minGenericTime;
+  return pandora::STATUS_CODE_SUCCESS;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------

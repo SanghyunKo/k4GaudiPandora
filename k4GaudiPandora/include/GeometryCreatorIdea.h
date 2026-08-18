@@ -1,13 +1,13 @@
 /**
- *  @file   k4GaudiPandora/include/DDGeometryCreatorIdea.h
+ *  @file   k4GaudiPandora/include/GeometryCreatorIdea.h
  *
  *  @brief  Header file for the geometry creator class.
  *
  *  $Log: $
  */
 
-#ifndef DDGeometryCreatorIdea_h
-#define DDGeometryCreatorIdea_h
+#ifndef GeometryCreatorIdea_h
+#define GeometryCreatorIdea_h
 
 #include "Api/PandoraApi.h"
 
@@ -16,33 +16,23 @@
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
- *  @brief  DDGeometryCreator class
+ *  @brief  Geometry creator for the IDEA detector
  */
-class DDGeometryCreatorIdea : public DDGeometryCreator {
+class GeometryCreatorIdea : public DDGeometryCreator {
 public:
-  // inherited settings specific to IDEA geometry creator
-  class Settings : public DDGeometryCreator::Settings {
-  public:
-    Settings()=default;
-    ~Settings()=default;
-
-    bool m_isOption2;
-  };
-
   /**
    *  @brief  Constructor
    *
    *  @param  settings the creator settings
    *  @param  pPandora address of the relevant pandora instance
    */
-  DDGeometryCreatorIdea(const Settings& settings, pandora::Pandora& pPandora,
+  GeometryCreatorIdea(const Settings& settings, pandora::Pandora& pPandora,
                         Gaudi::Algorithm* algorithm);
 
   /**
    *  @brief  Create geometry
    */
-  pandora::StatusCode CreateGeometry() const; // override;
-  // FIXME base function is not virtual
+  pandora::StatusCode CreateGeometry() const override;
 
 private:
   /**
@@ -50,7 +40,7 @@ private:
    *
    *  @param  subDetectorTypeMap the sub detector type map
    */
-  void SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const;
+  void SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const override;
 
   // IDEA ECAL parameters (fiber DRC for o1, crystal DRC for o2)
   void SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
@@ -61,7 +51,6 @@ private:
   void SetHcalEndcapParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
                          PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const;
 
-  const Settings m_settings;
 };
 
 #endif
