@@ -245,17 +245,22 @@ void PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
     return magneticFieldVector[2] / dd4hep::tesla; // z component at (0,0,0)
   };
 
-  const dd4hep::rec::LayeredCalorimeterData* drcExtension =
+  // The same selection DDGeometryCreatorIdea passes to SetEcalParameters, i.e. this is the SCEPCal
+  // (ECAL) extension -- not the dual-readout one, despite the name it used to carry here.
+  const dd4hep::rec::LayeredCalorimeterData* ecalExtension =
       getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL | dd4hep::DetType::ENDCAP),
                    (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD));
 
   // track creator settings
   m_trackCreatorSettings.m_bField = getFieldFromCompact();
-  m_trackCreatorSettings.m_endcapInnerZ = drcExtension->extent[2] / dd4hep::mm;
+  m_trackCreatorSettings.m_eCalEndCapInnerZ = ecalExtension->extent[2] / dd4hep::mm;
+  // Needed by DDTrackCreatorBase::CalculateTrackTimeAtCalorimeter.  The SCEPCal barrel is
+  // cylindrical, so m_eCalBarrelInnerSymmetry is left at 0 and only the radius is required.
+  m_trackCreatorSettings.m_eCalBarrelInnerR = ecalExtension->extent[0] / dd4hep::mm;
 
   // calo hit creator settings
   m_caloHitCreatorSettings.m_cherenkovFieldName = m_cherenkovFieldName;
-  m_caloHitCreatorSettings.m_theta = std::atan2(drcExtension->extent[0], drcExtension->extent[2]);
+  m_caloHitCreatorSettings.m_theta = std::atan2(ecalExtension->extent[0], ecalExtension->extent[2]);
   m_caloHitCreatorSettings.m_subDetectorSettings.resize(m_systemIDs.value().size());
 
   for (size_t icol = 0; icol < m_systemIDs.value().size(); ++icol) {
@@ -266,7 +271,7 @@ void PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
     subdetectorSetting.m_collectionType = m_collectionTypes.value().at(icol);
     subdetectorSetting.m_cellSize = m_cellSizes.value().at(icol);
 
-    for (const auto& layer : drcExtension->layers)
+    for (const auto& layer : ecalExtension->layers)
       subdetectorSetting.m_layerThicknesses.push_back(layer.sensitive_thickness);
   }
 }

@@ -54,6 +54,12 @@ DDTrackCreatorALLEGRO::DDTrackCreatorALLEGRO(const Settings& settings, pandora::
       m_tanLambdaEndcapDisk(0.f)
 
 {
+  // The DDKalTest tracking system and the LCTrack factory used to be built by the base constructor.
+  // They are set up here instead, so that a creator which does not extrapolate track states itself
+  // (and never calls GetTrackStatesAtCalo) does not have to build them.
+  this->InitialiseTrackingSystem();
+  m_lcTrackFactory = std::make_shared<lc_content::LCTrackFactory>();
+
   // FIXME! AD: currently ignoring the tracker parameters since we are working with truth tracks...
   /*
   m_trackerInnerR = getTrackingRegionExtent()[0];

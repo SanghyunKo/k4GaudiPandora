@@ -53,6 +53,12 @@ DDTrackCreatorILD::DDTrackCreatorILD(const Settings& settings, pandora::Pandora&
       m_minEtdZPosition(0.f), m_minSetRadius(0.f), m_geoSvc(geoSvc)
 
 {
+  // The DDKalTest tracking system and the LCTrack factory used to be built by the base constructor.
+  // They are set up here instead, so that a creator which does not extrapolate track states itself
+  // (and never calls GetTrackStatesAtCalo) does not have to build them.
+  this->InitialiseTrackingSystem();
+  m_lcTrackFactory = std::make_shared<lc_content::LCTrackFactory>();
+
   m_nFtdLayers = 0;
   m_ftdInnerRadii.clear();
   m_ftdOuterRadii.clear();

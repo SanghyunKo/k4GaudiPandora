@@ -51,9 +51,6 @@ public:
   // create calo hits in Pandora from provided hit vectors
   pandora::StatusCode createCaloHits(const std::vector<std::vector<edm4hep::CalorimeterHit>>& caloHitVectors) const;
 
-  // reset calo hit vector
-  void Reset();
-
 private:
   // settings
   const Settings m_settings;

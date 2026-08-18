@@ -51,15 +51,17 @@ DDTrackCreatorBase::DDTrackCreatorBase(const Settings& settings, pandora::Pandor
   const float ecalInnerR = settings.m_eCalBarrelInnerR;
   const float tsTolerance = settings.m_trackStateTolerance;
   m_minimalTrackStateRadiusSquared = (ecalInnerR - tsTolerance) * (ecalInnerR - tsTolerance);
-#ifdef K4GAUDIPANDORA_USE_DDKALTEST
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
+void DDTrackCreatorBase::InitialiseTrackingSystem() {
   // wrap in shared_ptr with a dummy destructor
   m_trackingSystem = std::make_shared<GaudiDDKalTest>(&m_algorithm);
   m_trackingSystem->init();
   //  FIXME: get info from metadata, collection, or service
   m_encoder = dd4hep::DDSegmentation::BitFieldCoder("subdet:5,side:-2,layer:9,module:8,sensor:8");
   m_trackingSystem->setEncoder(m_encoder);
-#endif
-  m_lcTrackFactory = std::make_shared<lc_content::LCTrackFactory>();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -332,6 +334,14 @@ void DDTrackCreatorBase::GetTrackStates(const edm4hep::Track& pTrack,
 
 void DDTrackCreatorBase::GetTrackStatesAtCalo(edm4hep::Track const& track,
                                               lc_content::LCTrackParameters& trackParameters) {
+  if (!m_trackingSystem) {
+    m_algorithm.error() << "DDTrackCreatorBase::GetTrackStatesAtCalo: the DDKalTest tracking system was never "
+                           "built -- a derived creator that calls this method must call "
+                           "InitialiseTrackingSystem() from its constructor"
+                        << endmsg;
+    throw pandora::StatusCodeException(pandora::STATUS_CODE_NOT_INITIALIZED);
+  }
+
   if (!trackParameters.m_reachesCalorimeter.Get()) {
     m_algorithm.debug() << "Track does not reach the ECal" << endmsg;
     return;
