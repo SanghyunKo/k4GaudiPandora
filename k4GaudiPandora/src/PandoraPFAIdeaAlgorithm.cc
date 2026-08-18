@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "PandoraPFAIdeaAlgorithm.h"
 #include "DDExternalClusteringAlgorithm.h"
 
@@ -6,30 +24,28 @@
 #include "DD4hep/Detector.h"
 #include "DD4hep/DetectorSelector.h"
 
-#include "LCContent.h"
-#include "LCPlugins/DualReadoutCorrection.h"
-#include "MLInference/ClusterNeutralPidAlgorithm.h"
-#include "LCParticleId/ForwardPhotonIdAlgorithm.h"
 #include "LCClustering/EcalSeededClusteringAlgorithm.h"
-#include "MLInference/SatelliteAssignmentOnnxAlgorithm.h"
-#include "LCUtility/IsolatedHitPreparationAlgorithm.h"
+#include "LCContent.h"
+#include "LCParticleId/ForwardPhotonIdAlgorithm.h"
 #include "LCPfoConstruction/IdeaPfoCreationAlgorithm.h"
+#include "LCPlugins/DualReadoutCorrection.h"
+#include "LCUtility/IsolatedHitPreparationAlgorithm.h"
+#include "MLInference/ClusterNeutralPidAlgorithm.h"
+#include "MLInference/SatelliteAssignmentOnnxAlgorithm.h"
 
-#include "DDPandoraPFANewAlgorithm.h"
 #include "DDBFieldPlugin.h"
+#include "DDPandoraPFANewAlgorithm.h"
 #include "GeometryCreatorIdea.h"
 
 PandoraPFAIdeaAlgorithm::PandoraPFAIdeaAlgorithm(const std::string& name, ISvcLocator* svcLoc)
-    : MultiTransformer(name, svcLoc,
-                       {
-                           KeyValue("inputTrackCollection", "TracksFromGenParticles"),
-                           KeyValues("inputCaloHitCollections", {}),
-                           KeyValues("inputClusterCollections", {}),
-                       },
-                       {
-                           KeyValue("outputClusterCollection", "PandoraClusters"),
-                           KeyValue("outputPfoCollection", "PandoraPfaIdea")
-                       }),
+    : MultiTransformer(
+          name, svcLoc,
+          {
+              KeyValue("inputTrackCollection", "TracksFromGenParticles"),
+              KeyValues("inputCaloHitCollections", {}),
+              KeyValues("inputClusterCollections", {}),
+          },
+          {KeyValue("outputClusterCollection", "PandoraClusters"), KeyValue("outputPfoCollection", "PandoraPfaIdea")}),
       m_pandora() {}
 
 StatusCode PandoraPFAIdeaAlgorithm::initialize() {
@@ -57,7 +73,8 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
     // back from it once the settings xml has been parsed - see below.
     auto* pDualReadoutCorrection = new lc_content::DualReadoutCorrection;
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterEnergyCorrectionPlugin(m_pandora, "DualReadoutCorrection", pandora::EnergyCorrectionType::HADRONIC,
+                            PandoraApi::RegisterEnergyCorrectionPlugin(m_pandora, "DualReadoutCorrection",
+                                                                       pandora::EnergyCorrectionType::HADRONIC,
                                                                        pDualReadoutCorrection));
 
     // Magnetic field from the dd4hep field map: algorithms retrieve it via the plugin (position
@@ -81,7 +98,6 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::SetExternalParameters(m_pandora, "DDExternalClustering", m_extEvtParam))
 
-
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "ClusterNeutralPid",
                                                                  new lc_content::ClusterNeutralPidAlgorithm::Factory));
@@ -90,23 +106,24 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "ForwardPhotonId",
                                                                  new lc_content::ForwardPhotonIdAlgorithm::Factory));
 
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "IsolatedHitPreparation",
-                                                                 new lc_content::IsolatedHitPreparationAlgorithm::Factory));
+    PANDORA_THROW_RESULT_IF(
+        pandora::STATUS_CODE_SUCCESS, !=,
+        PandoraApi::RegisterAlgorithmFactory(m_pandora, "IsolatedHitPreparation",
+                                             new lc_content::IsolatedHitPreparationAlgorithm::Factory));
 
+    PANDORA_THROW_RESULT_IF(
+        pandora::STATUS_CODE_SUCCESS, !=,
+        PandoraApi::RegisterAlgorithmFactory(m_pandora, "EcalSeededClustering",
+                                             new lc_content::EcalSeededClusteringAlgorithm::Factory));
 
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "EcalSeededClustering",
-                                                                 new lc_content::EcalSeededClusteringAlgorithm::Factory));
-
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            PandoraApi::RegisterAlgorithmFactory(m_pandora, "SatelliteAssignmentOnnx",
-                                                                 new lc_content::SatelliteAssignmentOnnxAlgorithm::Factory));
+    PANDORA_THROW_RESULT_IF(
+        pandora::STATUS_CODE_SUCCESS, !=,
+        PandoraApi::RegisterAlgorithmFactory(m_pandora, "SatelliteAssignmentOnnx",
+                                             new lc_content::SatelliteAssignmentOnnxAlgorithm::Factory));
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                             PandoraApi::RegisterAlgorithmFactory(m_pandora, "CreatePfo",
                                                                  new lc_content::IdeaPfoCreationAlgorithm::Factory));
-
 
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, m_geometryCreator->CreateGeometry())
 
@@ -135,15 +152,12 @@ StatusCode PandoraPFAIdeaAlgorithm::initialize() {
   return StatusCode::FAILURE;
 }
 
-const pandora::Pandora* PandoraPFAIdeaAlgorithm::GetPandora() const {
-  return &m_pandora;
-}
+const pandora::Pandora* PandoraPFAIdeaAlgorithm::GetPandora() const { return &m_pandora; }
 
 std::tuple<edm4hep::ClusterCollection, edm4hep::ReconstructedParticleCollection>
-PandoraPFAIdeaAlgorithm::operator()(
-    const edm4hep::TrackCollection& trackColl,
-    const std::vector<const edm4hep::CalorimeterHitCollection*>& caloHitColls,
-    const std::vector<const edm4hep::ClusterCollection*>& clusterColls) const {
+PandoraPFAIdeaAlgorithm::operator()(const edm4hep::TrackCollection& trackColl,
+                                    const std::vector<const edm4hep::CalorimeterHitCollection*>& caloHitColls,
+                                    const std::vector<const edm4hep::ClusterCollection*>& clusterColls) const {
 
   try {
     // Create output collections
@@ -168,8 +182,7 @@ PandoraPFAIdeaAlgorithm::operator()(
         caloHitVectors[i].push_back(hit);
     }
 
-    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
-                            m_caloHitCreator->createCaloHits(caloHitVectors));
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, m_caloHitCreator->createCaloHits(caloHitVectors));
 
     // host edm4hep clusters for the external clustering algorithm
     std::unique_ptr<std::vector<std::vector<edm4hep::Cluster>>> externalClustersPtr =
@@ -201,8 +214,8 @@ PandoraPFAIdeaAlgorithm::operator()(
   } catch (const pandora::StatusCodeException& statusCodeException) {
     // pandora::StatusCodeException does NOT derive from std::exception, so it
     // must be caught explicitly (otherwise it falls through to catch(...)).
-    error() << "Pandora failed to process event: pandora::StatusCodeException "
-            << statusCodeException.ToString() << endmsg;
+    error() << "Pandora failed to process event: pandora::StatusCodeException " << statusCodeException.ToString()
+            << endmsg;
     error() << statusCodeException.GetBackTrace() << endmsg;
     throw;
   } catch (std::exception& e) {
@@ -253,8 +266,8 @@ StatusCode PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
   };
 
   // single & rather than &&, so that every mismatched property is reported instead of just the first
-  if (!(checkLength(m_collectionTypes) & checkLength(m_layerFieldNames) &
-        checkLength(m_encodingStrings) & checkLength(m_cellSizes)))
+  if (!(checkLength(m_collectionTypes) & checkLength(m_layerFieldNames) & checkLength(m_encodingStrings) &
+        checkLength(m_cellSizes)))
     return StatusCode::FAILURE;
 
   // calo hit creator settings

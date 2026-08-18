@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "DualReadoutCaloHitCreator.h"
 
 #include "Pandora/PandoraEnumeratedTypes.h"
@@ -10,10 +28,12 @@
 
 #include "k4FWCore/MetadataUtils.h"
 
-DualReadoutCaloHitCreator::DualReadoutCaloHitCreator(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* algorithm)
+DualReadoutCaloHitCreator::DualReadoutCaloHitCreator(const Settings& settings, pandora::Pandora& pandora,
+                                                     const Gaudi::Algorithm* algorithm)
     : m_settings(settings), m_pandora(pandora), m_algorithm(*algorithm) {}
 
-pandora::StatusCode DualReadoutCaloHitCreator::createCaloHits(const std::vector<std::vector<edm4hep::CalorimeterHit>>& caloHitVectors) const {
+pandora::StatusCode DualReadoutCaloHitCreator::createCaloHits(
+    const std::vector<std::vector<edm4hep::CalorimeterHit>>& caloHitVectors) const {
   // system decoder to find out which subdetector the hit belongs to
   const dd4hep::DDSegmentation::BitFieldCoder decoderSystem("system:5");
 
@@ -79,11 +99,12 @@ pandora::StatusCode DualReadoutCaloHitCreator::createCaloHits(const std::vector<
       caloHitParameters.m_layer = layerFieldName.empty() ? 0 : encoder.get(cellID, layerFieldName);
       caloHitParameters.m_expectedDirection = caloHitParameters.m_positionVector.Get().GetUnitVector(); // projective
       caloHitParameters.m_cellNormalVector = caloHitParameters.m_positionVector.Get().GetUnitVector();
-      caloHitParameters.m_cellThickness = subdetectorSettings.m_layerThicknesses.empty() ?
-                                              subdetectorSettings.m_cellSize : subdetectorSettings.m_layerThicknesses.at(iLayer);
-      caloHitParameters.m_nCellRadiationLengths = 0.; // not used
+      caloHitParameters.m_cellThickness = subdetectorSettings.m_layerThicknesses.empty()
+                                              ? subdetectorSettings.m_cellSize
+                                              : subdetectorSettings.m_layerThicknesses.at(iLayer);
+      caloHitParameters.m_nCellRadiationLengths = 0.;   // not used
       caloHitParameters.m_nCellInteractionLengths = 0.; // not used
-      caloHitParameters.m_mipEquivalentEnergy = 0.; // not used
+      caloHitParameters.m_mipEquivalentEnergy = 0.;     // not used
       // hit type is occupied by the DRC flag, so we use these to distinguish ECAL and HCAL
       caloHitParameters.m_electromagneticEnergy = isEcal ? caloHitParameters.m_inputEnergy : 0.;
       caloHitParameters.m_hadronicEnergy = isEcal ? 0. : caloHitParameters.m_inputEnergy;

@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  *  @file   k4GaudiPandora/src/GeometryCreatorIdea.cc
  *
@@ -16,7 +35,7 @@
 dd4hep::rec::LayeredCalorimeterData* getExtension(unsigned int includeFlag, unsigned int excludeFlag = 0);
 
 GeometryCreatorIdea::GeometryCreatorIdea(const Settings& settings, pandora::Pandora& pPandora,
-                                             Gaudi::Algorithm* algorithm)
+                                         Gaudi::Algorithm* algorithm)
     : DDGeometryCreator(settings, pPandora, algorithm) {}
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,24 +63,23 @@ pandora::StatusCode GeometryCreatorIdea::CreateGeometry() const {
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 void GeometryCreatorIdea::SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const {
-  PandoraApi::Geometry::SubDetector::Parameters eCalBarrelParameters, eCalEndCapParameters, hCalBarrelParameters, hCalEndCapParameters;
+  PandoraApi::Geometry::SubDetector::Parameters eCalBarrelParameters, eCalEndCapParameters, hCalBarrelParameters,
+      hCalEndCapParameters;
   // hCalBarrelParameters, hCalEndCapParameters, muonBarrelParameters, muonEndCapParameters;
   // TODO they're not used anywhere at the moment, so ignoring them
 
-  this->SetEcalParameters(
-      *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
-          getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL | dd4hep::DetType::ENDCAP),
-                       (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
-      eCalBarrelParameters, eCalEndCapParameters);
+  this->SetEcalParameters(*const_cast<dd4hep::rec::LayeredCalorimeterData*>(getExtension(
+                              (dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL | dd4hep::DetType::ENDCAP),
+                              (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
+                          eCalBarrelParameters, eCalEndCapParameters);
 
   subDetectorTypeMap[pandora::ECAL_BARREL] = eCalBarrelParameters;
   subDetectorTypeMap[pandora::ECAL_ENDCAP] = eCalEndCapParameters;
-  
 
   this->SetHcalBarrelParameters(
       *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
           getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL | dd4hep::DetType::HADRONIC),
-                        (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
+                       (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
       hCalBarrelParameters);
 
   this->SetHcalEndcapParameters(
@@ -73,13 +91,12 @@ void GeometryCreatorIdea::SetMandatorySubDetectorParameters(SubDetectorTypeMap& 
   subDetectorTypeMap[pandora::HCAL_BARREL] = hCalBarrelParameters;
   subDetectorTypeMap[pandora::HCAL_ENDCAP] = hCalEndCapParameters;
 
-
   // PandoraApi::Geometry::SubDetector::Parameters coilParameters; // TODO retrive coil parameters
 }
 
 void GeometryCreatorIdea::SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
-                                              PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
-                                              PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
+                                            PandoraApi::Geometry::SubDetector::Parameters& paramBarrel,
+                                            PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
   unsigned layerVecSize = inputParameters.layers.size();  // zero for option 1
   unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
 
@@ -88,12 +105,13 @@ void GeometryCreatorIdea::SetEcalParameters(const dd4hep::rec::LayeredCalorimete
   paramBarrel.m_innerRCoordinate = inputParameters.extent[0] / dd4hep::mm;
   paramBarrel.m_innerZCoordinate = 0.;
   paramBarrel.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
-  paramBarrel.m_innerSymmetryOrder = 0; // not initialized
-  paramBarrel.m_outerRCoordinate = (inputParameters.extent[0] + inputParameters.extent[3] - inputParameters.extent[2]) / dd4hep::mm;
+  paramBarrel.m_innerSymmetryOrder = 0;  // not initialized
+  paramBarrel.m_outerRCoordinate =
+      (inputParameters.extent[0] + inputParameters.extent[3] - inputParameters.extent[2]) / dd4hep::mm;
   // barrel outerR = barrel innerR + tower height, tower height = endcap outer Z - endcap inner Z
   paramBarrel.m_outerZCoordinate = inputParameters.extent[2] / dd4hep::mm; // use endcap inner Z
-  paramBarrel.m_outerPhiCoordinate = 0.; // not initialized
-  paramBarrel.m_outerSymmetryOrder = 0; // not initialized
+  paramBarrel.m_outerPhiCoordinate = 0.;                                   // not initialized
+  paramBarrel.m_outerSymmetryOrder = 0;                                    // not initialized
   paramBarrel.m_isMirroredInZ = true;
   paramBarrel.m_nLayers = nlayers; // no longitudinal segmentation
 
@@ -115,11 +133,11 @@ void GeometryCreatorIdea::SetEcalParameters(const dd4hep::rec::LayeredCalorimete
   paramEndcap.m_innerRCoordinate = inputParameters.extent[4] / dd4hep::mm;
   paramEndcap.m_innerZCoordinate = inputParameters.extent[2] / dd4hep::mm;
   paramEndcap.m_innerPhiCoordinate = 0.; // not initialized in the LayeredCalorimeterData
-  paramEndcap.m_innerSymmetryOrder = 0; // not initialized
+  paramEndcap.m_innerSymmetryOrder = 0;  // not initialized
   paramEndcap.m_outerRCoordinate = inputParameters.extent[5] / dd4hep::mm;
   paramEndcap.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm;
   paramEndcap.m_outerPhiCoordinate = 0.; // not initialized
-  paramEndcap.m_outerSymmetryOrder = 0; // not initialized
+  paramEndcap.m_outerSymmetryOrder = 0;  // not initialized
   paramEndcap.m_isMirroredInZ = true;
   paramEndcap.m_nLayers = nlayers; // no longitudinal segmentation
 
@@ -140,10 +158,9 @@ void GeometryCreatorIdea::SetEcalParameters(const dd4hep::rec::LayeredCalorimete
 }
 
 void GeometryCreatorIdea::SetHcalBarrelParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
-                                              PandoraApi::Geometry::SubDetector::Parameters& paramBarrel) const {
+                                                  PandoraApi::Geometry::SubDetector::Parameters& paramBarrel) const {
 
-
-  unsigned layerVecSize = 0.; 
+  unsigned layerVecSize = 0.;
   unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
 
   paramBarrel.m_subDetectorName = "HCalBarrel";
@@ -151,15 +168,14 @@ void GeometryCreatorIdea::SetHcalBarrelParameters(const dd4hep::rec::LayeredCalo
   paramBarrel.m_innerRCoordinate = inputParameters.extent[0] / dd4hep::mm;
   paramBarrel.m_innerZCoordinate = 0.;
   paramBarrel.m_innerPhiCoordinate = 0.;
-  paramBarrel.m_innerSymmetryOrder = 0; 
-  paramBarrel.m_outerRCoordinate = inputParameters.extent[1]  / dd4hep::mm;
-  paramBarrel.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm; 
+  paramBarrel.m_innerSymmetryOrder = 0;
+  paramBarrel.m_outerRCoordinate = inputParameters.extent[1] / dd4hep::mm;
+  paramBarrel.m_outerZCoordinate = inputParameters.extent[3] / dd4hep::mm;
   paramBarrel.m_outerPhiCoordinate = 0.;
-  paramBarrel.m_outerSymmetryOrder = 0; 
+  paramBarrel.m_outerSymmetryOrder = 0;
   paramBarrel.m_isMirroredInZ = true;
-  paramBarrel.m_nLayers = nlayers; 
+  paramBarrel.m_nLayers = nlayers;
 
-  
   paramBarrel.m_layerParametersVector.resize(nlayers);
   float distanceBarrel = inputParameters.extent[0];
 
@@ -176,11 +192,10 @@ void GeometryCreatorIdea::SetHcalBarrelParameters(const dd4hep::rec::LayeredCalo
 }
 
 void GeometryCreatorIdea::SetHcalEndcapParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,
-                                              PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
+                                                  PandoraApi::Geometry::SubDetector::Parameters& paramEndcap) const {
 
   unsigned layerVecSize = 0;
   unsigned nlayers = layerVecSize > 0 ? layerVecSize : 1; // avoid zero
-
 
   paramEndcap.m_subDetectorName = "HCalEndcap";
   paramEndcap.m_subDetectorType = pandora::HCAL_ENDCAP;
@@ -193,7 +208,7 @@ void GeometryCreatorIdea::SetHcalEndcapParameters(const dd4hep::rec::LayeredCalo
   paramEndcap.m_outerPhiCoordinate = 0.;
   paramEndcap.m_outerSymmetryOrder = 0;
   paramEndcap.m_isMirroredInZ = true;
-  paramEndcap.m_nLayers = nlayers; 
+  paramEndcap.m_nLayers = nlayers;
 
   paramEndcap.m_layerParametersVector.resize(nlayers);
   float distanceEndcap = inputParameters.extent[2];

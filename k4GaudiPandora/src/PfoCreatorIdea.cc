@@ -30,12 +30,12 @@
 #include <cmath>
 #include <limits>
 
-PfoCreatorIdea::PfoCreatorIdea(const Settings& settings, pandora::Pandora& pandora,
-                               const Gaudi::Algorithm* algorithm)
+PfoCreatorIdea::PfoCreatorIdea(const Settings& settings, pandora::Pandora& pandora, const Gaudi::Algorithm* algorithm)
     : PfoCreatorBase(pandora, algorithm), m_settings(settings) {}
 
-pandora::StatusCode PfoCreatorIdea::CreateParticleFlowObjects(
-    edm4hep::ClusterCollection& clusterColl, edm4hep::ReconstructedParticleCollection& aPfoColl) const {
+pandora::StatusCode
+PfoCreatorIdea::CreateParticleFlowObjects(edm4hep::ClusterCollection& clusterColl,
+                                          edm4hep::ReconstructedParticleCollection& aPfoColl) const {
   const pandora::PfoList* pandoraPfoList = nullptr;
   PANDORA_RETURN_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::GetCurrentPfoList(m_pandora, pandoraPfoList))
 
@@ -53,9 +53,10 @@ pandora::StatusCode PfoCreatorIdea::CreateParticleFlowObjects(
   return pandora::STATUS_CODE_SUCCESS;
 }
 
-pandora::StatusCode PfoCreatorIdea::AddClustersToRecoParticle(
-    const pandora::ParticleFlowObject* const pPandoraPfo, edm4hep::ClusterCollection& clusterColl,
-    edm4hep::MutableReconstructedParticle& reconstructedParticle) const {
+pandora::StatusCode
+PfoCreatorIdea::AddClustersToRecoParticle(const pandora::ParticleFlowObject* const pPandoraPfo,
+                                          edm4hep::ClusterCollection& clusterColl,
+                                          edm4hep::MutableReconstructedParticle& reconstructedParticle) const {
   const pandora::ClusterList& clusterList(pPandoraPfo->GetClusterList());
 
   for (const auto* pPandoraCluster : clusterList) {

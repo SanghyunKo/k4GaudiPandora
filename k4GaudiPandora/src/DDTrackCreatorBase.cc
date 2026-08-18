@@ -289,8 +289,7 @@ bool DDTrackCreatorBase::IsConflictingRelationship(TrackRange const& trackVec) c
   return false;
 }
 
-pandora::StatusCode getEDM4hepTrackState(const edm4hep::Track& track, int location,
-                                         edm4hep::TrackState& trackState) {
+pandora::StatusCode getEDM4hepTrackState(const edm4hep::Track& track, int location, edm4hep::TrackState& trackState) {
   for (const auto& ts : track.getTrackStates()) {
     if (ts.location == location) {
       trackState = ts;
