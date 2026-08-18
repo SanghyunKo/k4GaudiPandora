@@ -185,7 +185,9 @@ protected:
    *          should not pay to build it.  A derived class that calls GetTrackStatesAtCalo must
    *          call this from its constructor.
    */
+#ifdef K4GAUDIPANDORA_USE_DDKALTEST
   void InitialiseTrackingSystem();
+#endif
 
   const Settings m_settings;           ///< The track creator settings
   pandora::Pandora& m_pandora;         ///< Reference to the pandora object to create tracks and track relationships

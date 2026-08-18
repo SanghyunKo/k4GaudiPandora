@@ -55,6 +55,7 @@ DDTrackCreatorBase::DDTrackCreatorBase(const Settings& settings, pandora::Pandor
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
+#ifdef K4GAUDIPANDORA_USE_DDKALTEST
 void DDTrackCreatorBase::InitialiseTrackingSystem() {
   // wrap in shared_ptr with a dummy destructor
   m_trackingSystem = std::make_shared<GaudiDDKalTest>(&m_algorithm);
@@ -63,6 +64,7 @@ void DDTrackCreatorBase::InitialiseTrackingSystem() {
   m_encoder = dd4hep::DDSegmentation::BitFieldCoder("subdet:5,side:-2,layer:9,module:8,sensor:8");
   m_trackingSystem->setEncoder(m_encoder);
 }
+#endif
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -306,8 +308,8 @@ void DDTrackCreatorBase::GetTrackStates(const edm4hep::Track& pTrack,
   PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=,
                           getEDM4hepTrackState(pTrack, edm4hep::TrackState::AtIP, atIP));
 
-  const double bField(this->GetBFieldForTrackState(pTrackState.referencePoint));
-  const double pt(bField * 2.99792e-4 / std::fabs(pTrackState.omega));
+  const double bField(this->GetBFieldForTrackState(atIP.referencePoint));
+  const double pt(bField * 2.99792e-4 / std::fabs(atIP.omega));
   trackParameters.m_momentumAtDca =
       pandora::CartesianVector(std::cos(atIP.phi), std::sin(atIP.phi), atIP.tanLambda) * pt;
 
@@ -357,14 +359,6 @@ void DDTrackCreatorBase::GetTrackStates(const edm4hep::Track& pTrack,
 
 void DDTrackCreatorBase::GetTrackStatesAtCalo(edm4hep::Track const& track,
                                               lc_content::LCTrackParameters& trackParameters) {
-  if (!m_trackingSystem) {
-    m_algorithm.error() << "DDTrackCreatorBase::GetTrackStatesAtCalo: the DDKalTest tracking system was never "
-                           "built -- a derived creator that calls this method must call "
-                           "InitialiseTrackingSystem() from its constructor"
-                        << endmsg;
-    throw pandora::StatusCodeException(pandora::STATUS_CODE_NOT_INITIALIZED);
-  }
-
   if (!trackParameters.m_reachesCalorimeter.Get()) {
     m_algorithm.debug() << "Track does not reach the ECal" << endmsg;
     return;
@@ -393,6 +387,14 @@ void DDTrackCreatorBase::GetTrackStatesAtCalo(edm4hep::Track const& track,
     trackParameters.m_trackStates.push_back(pandoraTrackState);
   }
 #else
+  if (!m_trackingSystem) {
+    m_algorithm.error() << "DDTrackCreatorBase::GetTrackStatesAtCalo: the DDKalTest tracking system was never "
+                           "built -- a derived creator that calls this method must call "
+                           "InitialiseTrackingSystem() from its constructor"
+                        << endmsg;
+    throw pandora::StatusCodeException(pandora::STATUS_CODE_NOT_INITIALIZED);
+  }
+
   const auto& trackAtCalo = statesAtCalo.front();
 
   const auto& tsPosition = trackAtCalo.referencePoint;
@@ -496,7 +498,10 @@ pandora::StatusCode DDTrackCreatorBase::CalculateTrackTimeAtCalorimeter(const ed
                                                                         float& trackTime) const {
 
   // Look the state up by location, as everywhere else in this class.
-  auto const ts = getEDM4hepTrackState(track, edm4hep::TrackState::AtIP);
+  edm4hep::TrackState ts;
+  if (pandora::STATUS_CODE_SUCCESS != getEDM4hepTrackState(track, edm4hep::TrackState::AtIP, ts))
+    return pandora::STATUS_CODE_NOT_FOUND;
+
   const pandora::Helix helix(ts.phi, ts.D0, ts.Z0, ts.omega, ts.tanLambda, m_settings.m_bField);
   const pandora::CartesianVector& referencePoint(helix.GetReferencePoint());
 
