@@ -21,6 +21,11 @@
 #include "Pandora/PandoraEnumeratedTypes.h"
 #include "Pandora/PandoraInputTypes.h"
 
+#include <Gaudi/Algorithm.h>
+
+#include <cmath>
+#include <limits>
+
 TrackCreatorIdea::TrackCreatorIdea(const Settings& settings, pandora::Pandora& pandora,
                                    const Gaudi::Algorithm* algorithm)
     : DDTrackCreatorBase(settings, pandora, algorithm) {
