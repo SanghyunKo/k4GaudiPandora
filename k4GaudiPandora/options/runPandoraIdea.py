@@ -27,6 +27,11 @@ iosvc = IOSvc()
 iosvc.Input = "input_reco.root"
 iosvc.Output = "output_pandora.root"
 
+# Whether the geometry has a dual-readout HCAL endcap.  The reduced CI geometry is barrel-only;
+# the geometry creator and the calo steering below are both driven from this one flag so they
+# cannot fall out of step.  Do NOT set this False for production.
+hasHcalEndcap = True
+
 # detector geometry
 # if K4GEO is empty, this should use relative path to working directory
 from Configurables import GeoSvc
@@ -35,12 +40,35 @@ geoservice = GeoSvc("GeoSvc")
 path_to_detector = os.environ.get("K4GEO", "")
 detectors_to_use = [
     'FCCee/IDEA/compact/IDEA_o2_v01/IDEA_o2_v01.xml'
+    if hasHcalEndcap
+    else 'FCCee/IDEA/compact/IDEA_o2_v01_CI/IDEA_o2_v01_CI.xml'
 ]
 
 geoservice.detectors = [
     os.path.join(path_to_detector, _det) for _det in detectors_to_use
 ]
 
+
+# per-calorimeter steering: the five vectors below are indexed together, one entry each
+caloHitCollections  = ["SCEPCal_digi_cheren", "SCEPCal_digi_scint", "DRBTScin_digi", "DRBTCher_digi"]
+caloSystemIDs       = [4, 5, 28]
+caloCollectionTypes = ["ECAL", "ECAL", "HCAL"]
+caloLayerFieldNames = ["depth", "depth", ""]
+caloEncodingStrings = [
+    "system:5,phi:7,theta:11,gamma:4,epsilon:4,depth:1,cherenkov:1",
+    "system:5,phi:7,theta:11,gamma:4,epsilon:4,depth:1,cherenkov:1",
+    "system:5,stave:10,tower:-8,air:6,col:-16,row:16,clad:1,core:1,cherenkov:1",
+]
+caloCellSizes       = [10, 10, 2.]
+
+if hasHcalEndcap:
+    caloHitCollections  += ["DRETScinLeft_digi", "DRETCherLeft_digi",
+                            "DRETScinRight_digi", "DRETCherRight_digi"]
+    caloSystemIDs       += [25]
+    caloCollectionTypes += ["HCAL"]
+    caloLayerFieldNames += [""]
+    caloEncodingStrings += ["system:5,stave:10,tower:6,air:1,col:16,row:16,clad:1,core:1,cherenkov:1"]
+    caloCellSizes       += [2.]
 
 params = {
     "PandoraSettingsXmlFile": "PandoraSettingsIdea.xml",
@@ -49,27 +77,13 @@ params = {
     "outputPfoCollection": "PandoraPfaIdea",
     "outputClusterCollection": "PandoraClusters",
     "CherenkovFieldName": "cherenkov",
-    "inputCaloHitCollections": [
-        "SCEPCal_digi_cheren",
-        "SCEPCal_digi_scint",
-        "DRBTScin_digi",
-        "DRBTCher_digi",
-        "DRETScinLeft_digi",
-        "DRETCherLeft_digi",
-        "DRETScinRight_digi",
-        "DRETCherRight_digi",
-    ],
-    # the five vectors below are indexed together, one entry per calorimeter
-    "CaloSystemIDs": [4, 5, 28, 25],
-    "CaloCollectionTypes": ["ECAL", "ECAL", "HCAL", "HCAL"],
-    "CaloLayerFieldNames": ["depth", "depth", "", ""],
-    "CaloEncodingStrings": [
-        "system:5,phi:7,theta:11,gamma:4,epsilon:4,depth:1,cherenkov:1",
-        "system:5,phi:7,theta:11,gamma:4,epsilon:4,depth:1,cherenkov:1",
-        "system:5,stave:10,tower:-8,air:6,col:-16,row:16,clad:1,core:1,cherenkov:1",
-        "system:5,stave:10,tower:6,air:1,col:16,row:16,clad:1,core:1,cherenkov:1",
-    ],
-    "CaloCellSizes": [10, 10, 2., 2.],
+    "HasHcalEndcap": hasHcalEndcap,
+    "inputCaloHitCollections": caloHitCollections,
+    "CaloSystemIDs": caloSystemIDs,
+    "CaloCollectionTypes": caloCollectionTypes,
+    "CaloLayerFieldNames": caloLayerFieldNames,
+    "CaloEncodingStrings": caloEncodingStrings,
+    "CaloCellSizes": caloCellSizes,
 }
 
 pandoraIdea = PandoraPFAIdeaAlgorithm("PandoraPFAIdeaAlgorithm", **params)

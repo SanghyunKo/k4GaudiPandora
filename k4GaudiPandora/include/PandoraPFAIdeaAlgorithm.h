@@ -78,13 +78,17 @@ private:
   std::unique_ptr<TrackCreatorIdea> m_trackCreator;
   std::unique_ptr<PfoCreatorIdea> m_pfoCreator;
 
-  DDGeometryCreator::Settings m_geometryCreatorSettings;
+  GeometryCreatorIdea::Settings m_geometryCreatorSettings;
   DualReadoutCaloHitCreator::Settings m_caloHitCreatorSettings;
   TrackCreatorIdea::Settings m_trackCreatorSettings;
   PfoCreatorIdea::Settings m_pfoCreatorSettings;
 
   Gaudi::Property<std::string> m_pandoraSettingsXmlFile{this, "PandoraSettingsXmlFile", "",
                                                         "The pandora settings xml file"};
+
+  Gaudi::Property<bool> m_hasHcalEndcap{this, "HasHcalEndcap", true,
+      "Whether the geometry has a dual-readout HCAL endcap.  Set false only for a barrel-only "
+      "geometry; the calo steering vectors must then drop the endcap subdetector too"};
 
   // calo hit creator settings
   Gaudi::Property<std::string> m_cherenkovFieldName{this, "CherenkovFieldName", "cherenkov",

@@ -228,6 +228,14 @@ PandoraPFAIdeaAlgorithm::operator()(const edm4hep::TrackCollection& trackColl,
 }
 
 StatusCode PandoraPFAIdeaAlgorithm::finaliseSteeringParameters() {
+  m_geometryCreatorSettings.m_hasHcalEndcap = m_hasHcalEndcap;
+  if (!m_hasHcalEndcap) {
+    warning() << "HasHcalEndcap is FALSE: no dual-readout HCAL endcap will be registered with "
+                 "pandora, and every direction is treated as barrel.  This is only correct for a "
+                 "barrel-only geometry for CI -- do NOT use it for production."
+              << endmsg;
+  }
+
   // TODO avoid duplication with DDPandoraPFANewAlgorithm
   auto getFieldFromCompact = []() -> double {
     dd4hep::Detector& mainDetector = dd4hep::Detector::getInstance();

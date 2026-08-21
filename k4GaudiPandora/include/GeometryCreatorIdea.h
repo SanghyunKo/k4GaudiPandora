@@ -39,6 +39,17 @@
  */
 class GeometryCreatorIdea : public DDGeometryCreator {
 public:
+  class Settings : public DDGeometryCreator::Settings {
+  public:
+    Settings() = default;
+    ~Settings() = default;
+
+    /// Whether the geometry has a dual-readout HCAL endcap.  The reduced CI geometry is
+    /// barrel-only, and registering an endcap subdetector it does not have would fail the
+    /// DetType lookup in getExtension.
+    bool m_hasHcalEndcap = true;
+  };
+
   /**
    *  @brief  Constructor
    *
@@ -59,6 +70,8 @@ private:
    *  @param  subDetectorTypeMap the sub detector type map
    */
   void SetMandatorySubDetectorParameters(SubDetectorTypeMap& subDetectorTypeMap) const override;
+
+  const bool m_hasHcalEndcap; ///< see Settings::m_hasHcalEndcap
 
   // IDEA ECAL parameters (fiber DRC for o1, crystal DRC for o2)
   void SetEcalParameters(const dd4hep::rec::LayeredCalorimeterData& inputParameters,

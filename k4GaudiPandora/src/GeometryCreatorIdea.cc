@@ -36,7 +36,7 @@ dd4hep::rec::LayeredCalorimeterData* getExtension(unsigned int includeFlag, unsi
 
 GeometryCreatorIdea::GeometryCreatorIdea(const Settings& settings, pandora::Pandora& pPandora,
                                          Gaudi::Algorithm* algorithm)
-    : DDGeometryCreator(settings, pPandora, algorithm) {}
+    : DDGeometryCreator(settings, pPandora, algorithm), m_hasHcalEndcap(settings.m_hasHcalEndcap) {}
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -82,14 +82,18 @@ void GeometryCreatorIdea::SetMandatorySubDetectorParameters(SubDetectorTypeMap& 
                        (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
       hCalBarrelParameters);
 
-  this->SetHcalEndcapParameters(
-      *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
-          getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::ENDCAP | dd4hep::DetType::HADRONIC),
-                       (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
-      hCalEndCapParameters);
-
   subDetectorTypeMap[pandora::HCAL_BARREL] = hCalBarrelParameters;
-  subDetectorTypeMap[pandora::HCAL_ENDCAP] = hCalEndCapParameters;
+
+  // A barrel-only geometry has no dual-readout endcap to look up, and registering one would fail.
+  if (m_hasHcalEndcap) {
+    this->SetHcalEndcapParameters(
+        *const_cast<dd4hep::rec::LayeredCalorimeterData*>(
+            getExtension((dd4hep::DetType::CALORIMETER | dd4hep::DetType::ENDCAP | dd4hep::DetType::HADRONIC),
+                         (dd4hep::DetType::AUXILIARY | dd4hep::DetType::FORWARD))),
+        hCalEndCapParameters);
+
+    subDetectorTypeMap[pandora::HCAL_ENDCAP] = hCalEndCapParameters;
+  }
 
   // PandoraApi::Geometry::SubDetector::Parameters coilParameters; // TODO retrive coil parameters
 }
