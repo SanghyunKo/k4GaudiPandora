@@ -27,10 +27,10 @@ iosvc = IOSvc()
 iosvc.Input = "input_reco.root"
 iosvc.Output = "output_pandora.root"
 
-# Whether the geometry has a dual-readout HCAL endcap.  The reduced CI geometry is barrel-only;
-# the geometry creator and the calo steering below are both driven from this one flag so they
-# cannot fall out of step.  Do NOT set this False for production.
-hasHcalEndcap = True
+# Whether the geometry has a dual-readout HCAL endcap.  This defaults to False, i.e. to the
+# reduced barrel-only geometry that the CI runs; set it True for production.  The algorithm
+# warns loudly when it is False.
+hasHcalEndcap = False
 
 # detector geometry
 # if K4GEO is empty, this should use relative path to working directory
