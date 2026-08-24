@@ -203,7 +203,6 @@ DDPandoraPFANewAlgorithm::operator()(const std::vector<const edm4hep::MCParticle
       const DDPandoraPFANewAlgorithm* self;
       ~ResetGuard() { self->reset(); }
     } resetGuard{this};
-
     std::vector<edm4hep::MCParticle> mcParticlesVector;
     for (const auto& mcParticleCollection : MCParticleCollections) {
       mcParticlesVector.insert(mcParticlesVector.end(), mcParticleCollection->begin(), mcParticleCollection->end());

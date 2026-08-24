@@ -21,11 +21,22 @@ from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
 from Configurables import DDPandoraPFANewAlgorithm
 
+from Configurables import GeoSvc
+
 import os
 
 iosvc = IOSvc()
 iosvc.Input = "output_pandora_ttbar.root"
 iosvc.Output = "output_externalClustering.root"
+
+# GeoSvc used to be configured as a side effect of importing runPandora.py; now that only the
+# parameters are imported it has to be set up explicitly here.
+geoservice = GeoSvc("GeoSvc")
+geoservice.detectors = [
+    os.environ["K4GEO"] + "/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml"
+]
+geoservice.OutputLevel = INFO
+geoservice.EnableGeant4Geo = False
 
 import sys
 
@@ -34,8 +45,12 @@ import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-# now import pandora params
-from runPandora import params
+# import the parameters only -- importing runPandora.py itself would re-execute its IOSvc and
+# GeoSvc configuration and silently override the input/output files set above
+import pandoraParams
+
+# copy, so that the overrides below do not mutate the shared module-level dictionary
+params = dict(pandoraParams.params)
 
 # dummy Pandora settings file containing only external clustering algo
 params["PandoraSettingsXmlFile"] = current_dir+"/PandoraSettingsExternalClustering.xml"

@@ -127,6 +127,11 @@ if(K4GP_BUILD_ML)
   ExternalData_Add_Target(idea_pandora_models)
 endif()
 
+add_test(NAME "run_Pandora_externalClustering"
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4GaudiPandora/options/runExternalClustering.py --IOSvc.Input output_pandora_ttbar.root --IOSvc.Output output_pandora_externalClustering.root
+)
+set_tests_properties("run_Pandora_externalClustering" PROPERTIES DEPENDS "run_Pandora_ttbar")
+
 # Set the environment for all tests in this directory at once
 # This follows the k4-project-template setup
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
